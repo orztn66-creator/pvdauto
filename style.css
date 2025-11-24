@@ -250,6 +250,7 @@ nav > a:hover, .submenu-group > a:hover {
     height: 100%;
     box-sizing: border-box;
     border-radius: 10px;
+    /* display: none; /* Removed display: none; */
 }
 .info-icon {
     width: 100%;
@@ -441,11 +442,11 @@ iframe.active-video {
 .promo-banner-container {
     width: 100%;
     max-width: none;
-    margin: 0 auto 20px auto;
+    margin: 0 auto; /* แก้ไข: ลบ 20px ด้านล่างออก */
     display: flex;
     padding: 0;
     box-sizing: border-box;
-    gap: 20px;
+    gap: 0; /* **แก้ไข: เปลี่ยนจาก 20px เป็น 0 เพื่อลบช่องว่างระหว่างกล่องโปรโมชัน** */
     align-items: stretch;
 }
 .promo-box {
@@ -461,6 +462,7 @@ iframe.active-video {
     height: 100%;
     display: block;
     object-fit: cover;
+    vertical-align: top; /* **เพิ่ม: เพื่อกำจัดช่องว่างเล็กๆ ใต้รูปภาพ (Baseline Gap)** */
 }
 
 /* =======================================
