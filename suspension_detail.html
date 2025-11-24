@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รู้ลึกเรื่องช่วงล่างเบนซ์ - PVD Auto Knowledge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background-color: #222;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background-color: #d9534f;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover { background-color: #c9302c; }
+
+        /* --- Hero Section (ส่วนหัวบทความ) --- */
+        .hero-article {
+            background-color: #000; /* สีพื้นหลังเผื่อรูปโหลดไม่ติด */
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=1600&auto=format&fit=crop'); /* รูปแทนช่วงล่าง/รถ */
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .hero-article h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .hero-article p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        /* --- Content Container --- */
+        .content-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h2 {
+            color: #0056b3;
+            border-left: 5px solid #0056b3;
+            padding-left: 15px;
+            margin-top: 40px;
+            margin-bottom: 25px;
+        }
+
+        /* --- Component Grid (ตารางแสดงชิ้นส่วน) --- */
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* จัดอัตโนมัติ */
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .component-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+
+        .component-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-img-wrapper {
+            height: 200px;
+            background-color: #eee;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* ให้ภาพเต็มกรอบสวยงาม */
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-content h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .card-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* --- Info Box (กล่องความรู้เสริม) --- */
+        .info-box {
+            background-color: #e9f5ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #b8daff;
+        }
+
+        .info-box h3 { color: #004085; margin-top: 0; }
+        .info-box ul { padding-left: 20px; }
+        .info-box li { margin-bottom: 10px; }
+
+        /* --- Maintenance Section --- */
+        .maintenance-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .maintain-item {
+            flex: 1 1 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .maintain-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* --- Footer Hashtags --- */
+        .article-footer {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #888;
+        }
+
+        .hashtags {
+            color: #0056b3;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <span>PVD Auto Knowledge</span>
+        <a href="knowledge.html" class="back-btn">❮ ย้อนกลับ</a>
+    </div>
+
+    <header class="hero-article">
+        <h1>🔥 รู้ลึกเรื่อง "ช่วงล่างเบนซ์"<br>หัวใจสำคัญของความนุ่มนวล!</h1>
+        <p>เคยสงสัยไหมครับว่าทำไมรถเบนซ์ถึงขับนิ่มสบาย แต่ก็เกาะถนนหนึบ? คำตอบอยู่ที่ระบบช่วงล่างอัจฉริยะนี่เอง! 🏎️💨</p>
+    </header>
+
+    <div class="content-container">
+        
+        <p class="intro-text">
+            ช่วงล่างคือส่วนประกอบที่ทำหน้าที่รองรับตัวถังและให้ความนุ่มนวลในการขับขี่ ประกอบด้วยชิ้นส่วนสำคัญหลายอย่างที่ทำงานร่วมกัน มาทำความรู้จักกับส่วนประกอบสำคัญที่ทำให้ทุกการขับขี่ของคุณพิเศษกว่าใคร
+        </p>
+
+        <h2>🔩 องค์ประกอบหลักของช่วงล่างเบนซ์</h2>
+        <div class="component-grid">
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                    <img src="https://via.placeholder.com/400x300?text=Control+Arm+(ปีกนก)" alt="ปีกนก (Control Arm)">
+                </div>
+                <div class="card-content">
+                    <h3>✅ ปีกนก (Control Arm)</h3>
+                    <p>แขนที่ยึดล้อเข้ากับตัวถังรถ ช่วยรับแรงสั่นสะเทือนและกำหนดมุมล้อ</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                    <img src="https://via.placeholder.com/400x300?text=Ball+Joint+(ลูกหมาก)" alt="ลูกหมาก (Ball Joint)">
+                </div>
+                <div class="card-content">
+                    <h3>✅ ลูกหมาก (Ball Joint)</h3>
+                    <p>ข้อต่อทรงกลมที่ทำให้ปีกนกและชิ้นส่วนอื่น ๆ เคลื่อนที่/หมุนได้อย่างอิสระ</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                    <img src="https://via.placeholder.com/400x300?text=Bushing+(บูชยาง)" alt="บูช (Bush)">
+                </div>
+                <div class="card-content">
+                    <h3>✅ บูช (Bush)</h3>
+                    <p>ยางหรือโพลียูรีเทนที่เป็นปลอกหุ้มข้อต่อ ช่วยลดเสียงและแรงสั่นสะเทือน</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                     [attachment_0](attachment)
+                    <img src="https://via.placeholder.com/400x300?text=Shock+Absorber+(โช้คอัพ)" alt="โช้คอัพ (Shock Absorber)">
+                </div>
+                <div class="card-content">
+                    <h3>✅ โช้คอัพ (Shock Absorber)</h3>
+                    <p>ควบคุมการยืดหดของสปริง และดูดซับแรงกระแทกไม่ให้รถกระเด้งไปมา</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                    <img src="https://via.placeholder.com/400x300?text=Stabilizer+Link+(กันโคลง)" alt="ลูกหมากกันโคลง">
+                </div>
+                <div class="card-content">
+                    <h3>✅ ลูกหมากกันโคลง</h3>
+                    <p>ยึดเหล็กกันโคลงกับโช้ค ช่วยลดการเอียงตัวของรถเวลาเข้าโค้ง</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="card-img-wrapper">
+                    <img src="https://via.placeholder.com/400x300?text=Tie+Rod+(คันชัก)" alt="ลูกหมากคันชัก/คันส่ง">
+                </div>
+                <div class="card-content">
+                    <h3>✅ ลูกหมากคันชัก (Tie Rod)</h3>
+                    <p>ส่งกำลังจากพวงมาลัยไปที่ล้อ เพื่อควบคุมทิศทางการเลี้ยว</p>
+                </div>
+            </div>
+
+        </div>
+
+        <h2>⚙️ ประเภทของระบบช่วงล่าง</h2>
+        <div class="info-box">
+            <p>เมอร์เซเดส-เบนซ์ มีระบบช่วงล่างหลายรูปแบบเพื่อตอบสนองการใช้งานที่ต่างกัน:</p>
+            <ul>
+                <li><strong>🔹 ระบบช่วงล่างทั่วไป (Standard/Comfort):</strong> เน้นการทำงานร่วมกันของสปริงและโช้คอัพ เพื่อความนุ่มนวลและทนทานสำหรับการใช้งานทุกวัน</li>
+                <li><strong>🔹 ระบบ Active Body Control (ABC) / Airmatic:</strong>  ระบบช่วงล่างอัจฉริยะที่ใช้ <strong>ถุงลม (Air Suspension)</strong> ปรับระดับความสูงอัตโนมัติ และควบคุมการเอียงตัวขณะเข้าโค้ง เพื่อความนิ่งและเสถียรภาพสูงสุด</li>
+            </ul>
+        </div>
+
+        <h2>🛠️ การดูแลรักษา เพื่อความปลอดภัย</h2>
+        <div class="maintenance-section">
+            <div class="maintain-item">
+                <span class="maintain-icon">🔍</span>
+                <h3>ตรวจเช็กตามระยะ</h3>
+                <p>ควรเช็กสภาพช่วงล่าง ลูกหมาก ลูกยาง บูช ทุกครั้งที่ถ่ายน้ำมันเครื่อง หรือทุก 10,000 กม.</p>
+            </div>
+            <div class="maintain-item">
+                <span class="maintain-icon">🔧</span>
+                <h3>รีบซ่อมเมื่อเสียหาย</h3>
+                <p>เสียงกุกกักหรืออาการพวงมาลัยสั่นคือสัญญาณเตือน ควรรีบเปลี่ยนชิ้นส่วนที่เสียทันที</p>
+            </div>
+            <div class="maintain-item">
+                <span class="maintain-icon">⚖️</span>
+                <h3>ตั้งศูนย์ถ่วงล้อ</h3>
+                <p>หลังจากซ่อมช่วงล่าง ต้องตั้งศูนย์ล้อใหม่เสมอ เพื่อให้รถวิ่งตรงและยางไม่สึกผิดปกติ</p>
+            </div>
+        </div>
+
+        <div class="article-footer">
+            <p>ดูแลรถดี รถก็ดูแลเรา ให้ทุกการเดินทางของคุณราบรื่นและปลอดภัยครับ! 👍</p>
+            <p class="hashtags">#ช่วงล่างเบนซ์ #ความรู้เรื่องรถ #PVDAutoKnowledge #ดูแลรักษารถยนต์</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ความรู้เรื่องรถ - PVD Auto Garage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ตั้งค่าพื้นฐาน --- */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        /* --- ส่วนหัว (Header) --- */
+        .header-bar {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            background-color: #d9534f;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #c9302c;
+        }
+
+        /* --- คอนเทนเนอร์หลัก --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #222;
+        }
+
+        /* --- Grid Layout --- */
+        .menu-grid {
+            display: grid;
+            gap: 25px;
+            justify-content: center;
+        }
+
+        @media (min-width: 769px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- การ์ดเมนู (Menu Item) --- */
+        /* ใช้ class เดียวกันทั้ง a และ div */
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* ให้การ์ดสูงเท่ากันในแถว */
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+
+        .menu-item-content {
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* ดันเนื้อหาให้เต็มพื้นที่ */
+            justify-content: space-between; /* จัดระยะห่างให้สมดุล */
+        }
+
+        .menu-item h3 {
+            margin: 0 0 10px 0;
+            color: #0056b3;
+            font-size: 1.2rem;
+        }
+
+        .menu-item p {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* --- ปุ่มแสดงทั้งหมด (ใหม่) --- */
+        .btn-show-all {
+            display: inline-block;
+            background-color: #0056b3; /* สีน้ำเงิน */
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px; /* มุมมนรี */
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-top: auto; /* ดันปุ่มไปล่างสุดเสมอ */
+            align-self: center; /* จัดปุ่มให้อยู่ตรงกลาง */
+        }
+
+        .btn-show-all:hover {
+            background-color: #004494; /* สีเข้มขึ้นเมื่อชี้ */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <span class="header-title">คลังความรู้ PVD Auto</span>
+        <a href="index.html" class="back-btn">⌂ กลับหน้าแรก</a>
+    </div>
+
+    <div class="container">
+        <h1>สาระน่ารู้เรื่องรถยนต์</h1>
+
+        <div class="menu-grid">
+
+            <div class="menu-item">
+                <img src="suspension.jpg" alt="ระบบช่วงล่าง">
+                <div class="menu-item-content">
+                    <div>
+                        <h3>ช่วงล่าง (Suspension)</h3>
+                        <p>ความสำคัญของระบบช่วงล่าง โช๊คอัพ และสัญญาณเตือนเมื่อช่วงล่างมีปัญหา</p>
+                    </div>
+                    <a href="suspension_detail.html" class="btn-show-all">แสดงทั้งหมด ➜</a>
+                </div>
+            </div>
+
+            <a href="#" class="menu-item">
+                <img src="https://via.placeholder.com/400x250?text=Engine+Oil" alt="น้ำมันเครื่อง">
+                <div class="menu-item-content">
+                    <h3>น้ำมันเครื่อง</h3>
+                    <p>เกร็ดความรู้เรื่องการเลือกน้ำมันเครื่องให้เหมาะกับรถเบนซ์ของคุณ</p>
+                </div>
+            </a>
+
+            <a href="#" class="menu-item">
+                <img src="https://via.placeholder.com/400x250?text=Brake+System" alt="ระบบเบรก">
+                <div class="menu-item-content">
+                    <h3>ระบบเบรก</h3>
+                    <p>การดูแลรักษาผ้าเบรกและจานเบรก เพื่อความปลอดภัยสูงสุด</p>
+                </div>
+            </a>
+            
+             <a href="#" class="menu-item">
+                <img src="https://via.placeholder.com/400x250?text=Battery" alt="แบตเตอรี่">
+                <div class="menu-item-content">
+                    <h3>ระบบไฟ & แบตเตอรี่</h3>
+                    <p>วิธีสังเกตอาการแบตเตอรี่เสื่อมและการดูแลระบบไฟ</p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>
