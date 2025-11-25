@@ -190,18 +190,30 @@
         }
         .btn-phone:hover { background-color: #004494; }
 
+                /* ... (โค้ดเดิม) ... */
+        
         .btn-line {
             background-color: #06c755;
             color: white;
         }
         .btn-line:hover { background-color: #05a546; }
 
-        @keyframes fadeIn {
-            from {opacity: 0;} to {opacity: 1;}
+        /* --- ส่วนที่เพิ่มใหม่สำหรับ Facebook --- */
+        .btn-facebook {
+            background-color: #1877F2; /* สีน้ำเงิน Facebook */
+            color: white;
+            display: flex; /* จัดไอคอนและข้อความให้อยู่กึ่งกลาง */
+            align-items: center; 
+            justify-content: center;
         }
-        @keyframes slideUp {
-            from {transform: translateY(20px); opacity: 0;}
-            to {transform: translateY(0); opacity: 1;}
+        .btn-facebook:hover { background-color: #166fe5; }
+
+        /* ปรับขนาดไอคอนรูปภาพให้เท่ากับ Emoji ของไลน์/โทร */
+        .icon-img {
+            width: 24px;   /* กว้าง */
+            height: 24px;  /* สูง (เท่ากันเป็นสี่เหลี่ยม) */
+            margin-right: 10px; /* เว้นระยะห่างจากตัวหนังสือ */
+            object-fit: contain;
         }
 
     </style>
@@ -209,8 +221,8 @@
 <body>
 
     <div class="header-bar">
-        <span class="header-title">บริการถ่ายน้ำมันเครื่อง</span>
-        <a href="index.html" class="back-btn">❮ ย้อนกลับ</a>
+        <span class="header-title">การเลือกน้ำมันเครื่อง</span>
+        <a href="knowledge.html" class="back-btn">❮ ย้อนกลับ</a>
     </div>
 
     <div class="container">
@@ -257,18 +269,22 @@
 
     </div>
 
-    <div id="contactModal" class="modal">
+        <div id="contactModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3 style="margin-top:0;">ช่องทางติดต่อ PVD Auto</h3>
             <p>เลือกช่องทางที่คุณสะดวก</p>
             
             <a href="tel:0885565591" class="contact-option btn-phone">
-                📞 โทรศัพท์(088-556-5591)
+                <span style="font-size: 24px; margin-right: 10px;">📞</span> โทรศัพท์ (088-556-5591)
             </a>
             
             <a href="https://line.me/ti/p/~pvdautogarage" target="_blank" class="contact-option btn-line">
-                💬 แชทผ่าน LINE
+                <span style="font-size: 24px; margin-right: 10px;">💬</span> แชทผ่าน LINE
+            </a>
+
+            <a href="https://www.facebook.com/siramate.phaetkun" target="_blank" class="contact-option btn-facebook">
+                <img src="fb icon.png" alt="Facebook" class="icon-img"> ติดตามเพจ Facebook
             </a>
         </div>
     </div>
