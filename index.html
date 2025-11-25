@@ -52,6 +52,7 @@
       ]
     }
     </script>
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -64,6 +65,7 @@
       "embedUrl": "https://www.youtube.com/embed/ehSkrHD7M8U"
     }
     </script>
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1173,6 +1175,25 @@
     </button>
     <p>© 2025 Your Website. All rights reserved.</p>
     </footer>
+    
+    <script>
+    function playEmbeddedVideo() {
+        var iframe = document.getElementById('pvdVideo');
+        if(iframe) {
+            iframe.style.display = 'block';
+            // ถ้าจำเป็นต้องสั่งเล่นด้วย JS: iframe.src += "?autoplay=1";
+        }
+        var btn = document.querySelector('#about .video-play-button');
+        if(btn) btn.style.display = 'none';
+    }
+    function playEmbeddedVideo2() {
+        var iframe = document.getElementById('pvdVideo2');
+        if(iframe) {
+            iframe.style.display = 'block';
+        }
+        // ซ่อนปุ่ม play เฉพาะกล่องที่ 2 (ถ้ามี)
+    }
+    </script>
 
     <script src="script.js"></script>
      
