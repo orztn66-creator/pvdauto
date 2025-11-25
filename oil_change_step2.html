@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การเลือกน้ำมันเครื่อง - PVD Auto Garage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Style เดิม --- */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header-bar {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            background-color: #d9534f;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #c9302c;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #0056b3;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            font-size: 1.3rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .highlight-box {
+            background-color: #e8f4ff;
+            border-left: 5px solid #0056b3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .step-indicator {
+            display: inline-block;
+            background: #eee;
+            color: #666;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        ul {
+            padding-left: 20px;
+            color: #555;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* --- ปุ่ม CTA (ปรับแก้ให้เป็นปุ่มกดแล้วเด้ง Popup) --- */
+        .cta-button {
+            display: block;
+            width: fit-content;
+            margin: 40px auto 20px;
+            background-color: #0056b3;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            background-color: #004494;
+        }
+
+        /* --- CSS สำหรับ Modal Popup (ส่วนที่เพิ่มใหม่) --- */
+        .modal {
+            display: none; /* ซ่อนไว้ก่อน */
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6); /* พื้นหลังสีดำจางๆ */
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .contact-option {
+            display: block;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-phone {
+            background-color: #0056b3;
+            color: white;
+        }
+        .btn-phone:hover { background-color: #004494; }
+
+        .btn-line {
+            background-color: #06c755;
+            color: white;
+        }
+        .btn-line:hover { background-color: #05a546; }
+
+        @keyframes fadeIn {
+            from {opacity: 0;} to {opacity: 1;}
+        }
+        @keyframes slideUp {
+            from {transform: translateY(20px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <span class="header-title">บริการถ่ายน้ำมันเครื่อง</span>
+        <a href="index.html" class="back-btn">❮ ย้อนกลับ</a>
+    </div>
+
+    <div class="container">
+        
+        <span class="step-indicator">ขั้นตอนที่ 2 จาก 4</span>
+        <h1>การเลือกน้ำมันเครื่อง (Oil Selection)</h1>
+
+        <img src="ถ่ายน้ำมัน.jpg" alt="การเลือกน้ำมันเครื่อง" class="hero-image">
+
+        <p>การเลือกน้ำมันเครื่องไม่ได้ดูแค่ยี่ห้อ แต่ต้องดูที่ "สเปค" ให้ตรงกับเครื่องยนต์ โดยเฉพาะรถยุโรปที่มีความซับซ้อนของเครื่องยนต์สูง การเลือกผิดอาจส่งผลต่ออายุการใช้งานได้</p>
+
+        <div class="highlight-box">
+            <h3>หัวใจสำคัญ: MB Approval</h3>
+            <p>สำหรับรถ Mercedes-Benz สิ่งที่สำคัญที่สุดคือมาตรฐาน <strong>MB Approval</strong> ที่ระบุข้างแกลอน ต้องตรงกับรุ่นเครื่องยนต์ของคุณ</p>
+        </div>
+
+        <h2>1. ค่าความหนืด (Viscosity)</h2>
+        <p>ตัวเลข SAE (เช่น 0W-40, 5W-30) บอกถึงความข้นใสของน้ำมัน:</p>
+        <ul>
+            <li><strong>เบอร์ 30:</strong> เหมาะสำหรับรถใหม่ เครื่องยนต์ฟิต เน้นความลื่นไหล ประหยัดน้ำมัน</li>
+            <li><strong>เบอร์ 40:</strong> เหมาะสำหรับรถใช้งานทั่วไป หรือรถที่มีอายุการใช้งานมาระดับหนึ่ง ช่วยปกป้องเครื่องยนต์ในอุณหภูมิสูงได้ดี</li>
+            <li><strong>เบอร์ 50:</strong> เหมาะสำหรับรถสมรรถนะสูง หรือรถเก่าที่เครื่องเริ่มหลวม</li>
+        </ul>
+
+        <h2>2. ประเภทน้ำมัน (Base Oil)</h2>
+        <p>ทาง PVD Auto แนะนำให้ใช้ <strong>น้ำมันสังเคราะห์แท้ 100% (Fully Synthetic)</strong> เท่านั้น สำหรับรถ Mercedes-Benz เนื่องจาก:</p>
+        <ul>
+            <li>ทนความร้อนสูงได้ดีกว่า ไม่ระเหยง่าย</li>
+            <li>ฟิล์มน้ำมันแข็งแรง ปกป้องชิ้นส่วนสึกหรอได้ดีเยี่ยม</li>
+            <li>อายุการใช้งานยาวนาน (10,000 - 15,000 กม.)</li>
+        </ul>
+
+        <h2>3. มาตรฐาน MB Approval ที่พบบ่อย</h2>
+        <ul>
+            <li><strong>MB 229.5:</strong> สำหรับเครื่องยนต์เบนซิน (Gasoline) ทั่วไป</li>
+            <li><strong>MB 229.51 / 229.52:</strong> สำหรับเครื่องยนต์ดีเซลที่มีระบบ DPF (Diesel Particulate Filter) และเครื่องยนต์เบนซินรุ่นใหม่</li>
+        </ul>
+
+        <div style="text-align: center; margin-top: 40px; color: #888; font-size: 0.9rem;">
+            <em>*หากไม่แน่ใจ ทางช่างของเรายินดีตรวจสอบสเปคที่เหมาะสมจากเลขตัวถังรถยนต์ของท่านครับ</em>
+        </div>
+
+        <button class="cta-button" onclick="openModal()">ปรึกษาช่าง / จองคิวถ่ายน้ำมัน</button>
+
+    </div>
+
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 style="margin-top:0;">ช่องทางติดต่อ PVD Auto</h3>
+            <p>เลือกช่องทางที่คุณสะดวก</p>
+            
+            <a href="tel:0885565591" class="contact-option btn-phone">
+                📞 โทรศัพท์(088-556-5591)
+            </a>
+            
+            <a href="https://line.me/ti/p/~pvdautogarage" target="_blank" class="contact-option btn-line">
+                💬 แชทผ่าน LINE
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันเปิด Modal
+        function openModal() {
+            document.getElementById("contactModal").style.display = "block";
+        }
+
+        // ฟังก์ชันปิด Modal
+        function closeModal() {
+            document.getElementById("contactModal").style.display = "none";
+        }
+
+        // ปิด Modal เมื่อคลิกพื้นที่ว่างๆ ด้านนอก
+        window.onclick = function(event) {
+            var modal = document.getElementById("contactModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>
