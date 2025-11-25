@@ -8,19 +8,10 @@
     
     <style>
         /* --- ตั้งค่าพื้นฐาน --- */
-        * {
-            box-sizing: border-box; /* สำคัญ: จัดการ padding ไม่ให้ดันกล่องเบี้ยว */
-        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
 
-        body {
-            font-family: 'Sarabun', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        /* --- ส่วนหัว (Header) --- */
+        /* --- Header --- */
         .header-bar {
             background-color: #333;
             color: white;
@@ -29,16 +20,11 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: sticky; /* ตรึงเมนูไว้ด้านบน */
+            position: sticky;
             top: 0;
             z-index: 100;
         }
-
-        .header-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
+        .header-title { font-size: 1.2rem; font-weight: bold; }
         .back-btn {
             background-color: #d9534f;
             color: white;
@@ -48,53 +34,44 @@
             font-size: 0.9rem;
             transition: background 0.3s;
         }
+        .back-btn:hover { background-color: #c9302c; }
 
-        .back-btn:hover {
-            background-color: #c9302c;
-        }
-
-        /* --- คอนเทนเนอร์หลัก --- */
+        /* --- Container --- */
         .container {
-            max-width: 1280px; /* ขยายความกว้างเพื่อให้ 3 คอลัมน์ดูไม่อึดอัด */
+            max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
         }
+        h1 { text-align: center; margin-bottom: 40px; color: #222; }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 40px;
-            color: #222;
-        }
-
-        /* --- Grid Layout (หัวใจหลักของการจัด 3 แถว) --- */
+        /* --- Grid Layout (จุดที่แก้ไข) --- */
         .menu-grid {
             display: grid;
-            gap: 30px; /* ระยะห่างระหว่างการ์ด */
+            gap: 30px;
             justify-content: center;
+            
+            /* ค่าเริ่มต้นเป็น 3 คอลัมน์ (สำหรับ Desktop และ Desktop Mode ในมือถือ) */
+            grid-template-columns: repeat(3, 1fr);
         }
 
-        /* Desktop: บังคับ 3 คอลัมน์ */
-        @media (min-width: 992px) {
-            .menu-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        /* Tablet: 2 คอลัมน์ */
-        @media (min-width: 600px) and (max-width: 991px) {
+        /* ✅ แก้ไขจุดตัด (Breakpoint) 
+           เปลี่ยนจาก 992px เป็น 960px 
+           เพื่อให้โหมด Desktop ในมือถือ (ซึ่งกว้าง 980px) ไม่ถูกบังคับเป็น 2 คอลัมน์ 
+        */
+        @media (max-width: 960px) {
             .menu-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        /* Mobile: 1 คอลัมน์ */
-        @media (max-width: 599px) {
+        /* Mobile View (แนวตั้งปกติ) */
+        @media (max-width: 600px) {
             .menu-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* --- การ์ดเมนู (Menu Item) --- */
+        /* --- Menu Item Card --- */
         .menu-item {
             background: white;
             border-radius: 10px;
@@ -105,53 +82,39 @@
             transition: transform 0.3s, box-shadow 0.3s;
             display: flex;
             flex-direction: column;
-            height: 100%; /* บังคับให้การ์ดสูงเท่ากันทั้งแถว */
+            height: 100%;
         }
-
-        .menu-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-        }
-
+        .menu-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
         .menu-item img {
             width: 100%;
-            height: 220px; /* ความสูงภาพคงที่ */
+            height: 220px;
             object-fit: cover;
             border-bottom: 1px solid #eee;
         }
-
         .menu-item-content {
             padding: 20px;
             text-align: center;
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* ขยายพื้นที่ให้เต็ม */
-            justify-content: space-between; /* ดันปุ่มไปล่างสุด */
+            flex-grow: 1;
+            justify-content: space-between;
         }
-
         .menu-item h3 {
             margin: 0 0 10px 0;
             color: #0056b3;
             font-size: 1.2rem;
-            height: 2.4rem; /* จองพื้นที่บรรทัดหัวข้อให้เท่ากัน */
+            height: 2.4rem;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
-
-        .menu-item p {
-            margin: 0 0 20px 0;
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* --- ปุ่มแสดงทั้งหมด (สีเดิมตามสั่ง) --- */
+        .menu-item p { margin: 0 0 20px 0; color: #666; font-size: 0.95rem; line-height: 1.5; }
+        
         .btn-show-all {
             display: inline-block;
-            background-color: #0056b3; /* สีเดิม */
-            color: white; /* สีตัวอักษรเดิม */
+            background-color: #0056b3;
+            color: white;
             text-decoration: none;
             padding: 10px 25px;
             border-radius: 25px;
@@ -160,13 +123,9 @@
             transition: background 0.3s;
             margin-top: auto;
             align-self: center;
-            border: none; /* ไม่มีขอบ */
+            border: none;
         }
-
-        .btn-show-all:hover {
-            background-color: #004494; /* เปลี่ยนสีเข้มขึ้นเล็กน้อยเมื่อเมาส์ชี้ */
-        }
-
+        .btn-show-all:hover { background-color: #004494; }
     </style>
 </head>
 <body>
