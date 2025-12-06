@@ -1,21 +1,13 @@
+/*
+  =============================================================
+  ==    ⭐️ โค้ด JavaScript ฉบับสมบูรณ์ (Final Version) ⭐️    ==
+  =============================================================
+*/
+
+// [ปรับปรุง] initializePage ให้รัดกุมขึ้น โดยเรียก goHome()
 function initializePage() {
-    const allSections = document.querySelectorAll('.section');
-    allSections.forEach(section => {
-        section.style.display = 'none';
-    });
-    const heroSection = document.getElementById('hero-section');
-    if (heroSection) {
-        heroSection.style.display = 'flex';
-    }
-    goHome();
-    const promoBanner = document.getElementById('promo-banner-section');
-    if (promoBanner) {
-        promoBanner.style.display = 'block';
-    }
-    const extraPromoBanner = document.getElementById('extra-promo-banner-section');
-    if (extraPromoBanner) {
-        extraPromoBanner.style.display = 'block';
-    }
+    // goHome() จะจัดการซ่อนทุก Section และแสดงเฉพาะส่วน Hero/Banner
+    goHome(); 
 }
 
 function toggleMenu() {
@@ -40,44 +32,70 @@ function toggleSubMenu(event, submenuId) {
 
 // *แก้ไข: ให้ footer แสดงผลทุกครั้งที่กลับหน้าหลัก*
 function goHome() {
+    // [1] ซ่อนทุก Section
     const allSections = document.querySelectorAll('.section');
     allSections.forEach(section => {
         section.style.display = 'none';
+        section.style.opacity = '0'; // เพิ่ม opacity สำหรับ CSS transition
     });
-    document.getElementById('hero-section').style.display = 'flex';
-    document.getElementById('new-brand-section').style.display = 'flex';
-    document.getElementById('promo-banner-section').style.display = 'block';
-    document.getElementById('extra-promo-banner-section').style.display = 'block';
+    
+    // [2] แสดง Section หลักและ Banner
+    const heroSection = document.getElementById('hero-section');
+    const newBrandSection = document.getElementById('new-brand-section');
+    const promoBanner = document.getElementById('promo-banner-section');
+    const extraPromoBanner = document.getElementById('extra-promo-banner-section');
+    
+    if (heroSection) heroSection.style.display = 'flex';
+    if (newBrandSection) newBrandSection.style.display = 'flex';
+    if (promoBanner) promoBanner.style.display = 'block';
+    if (extraPromoBanner) extraPromoBanner.style.display = 'block';
+
+    // [3] แสดง Footer
     const _mf = document.getElementById('main-footer');
     if (_mf) {
         _mf.style.display = 'block';
-    } // *ตรวจสอบให้ footer แสดง*
+    } 
+    
+    // [4] ปิดเมนูย่อย
     document.querySelectorAll('.dropdown-content').forEach(menu => {
         menu.style.display = 'none';
     });
     window.scrollTo(0, 0);
 }
 
-// * === [โค้ดแก้ไข] ฟังก์ชัน showSection ที่อัปเดตแล้ว === *
+// * === [โค้ดแก้ไข] ฟังก์ชัน showSection ที่อัปเดตแล้ว (แก้ปัญหาเมนูพัง) === *
 function showSection(targetId) {
     // ต้องหยุดวิดีโอทั้งหมดก่อนเปลี่ยน Section
     stopAllVideos();
 
-    document.getElementById('hero-section').style.display = 'none';
-    document.getElementById('new-brand-section').style.display = 'none';
-    document.getElementById('promo-banner-section').style.display = 'none';
-    document.getElementById('extra-promo-banner-section').style.display = 'none';
-
+    // [1] ซ่อน Banner หลักทั้งหมดก่อน (เพราะ Banner อยู่ในส่วนที่ไม่ใช่ .section)
+    const heroSection = document.getElementById('hero-section');
+    const newBrandSection = document.getElementById('new-brand-section');
+    const promoBanner = document.getElementById('promo-banner-section');
+    const extraPromoBanner = document.getElementById('extra-promo-banner-section');
+    
+    if (heroSection) heroSection.style.display = 'none';
+    if (newBrandSection) newBrandSection.style.display = 'none';
+    if (promoBanner) promoBanner.style.display = 'none';
+    if (extraPromoBanner) extraPromoBanner.style.display = 'none';
+    
+    // [2] ซ่อนทุก Section
     const allSections = document.querySelectorAll('.section');
     allSections.forEach(section => {
         section.style.display = 'none';
+        section.style.opacity = '0'; // เพิ่ม opacity สำหรับ CSS transition
     });
 
+    // [3] แสดง Section เป้าหมาย
     const targetElement = document.getElementById(targetId);
     if (targetElement) {
-        targetElement.style.display = 'block';
+        targetElement.style.display = 'block'; // สั่งให้ CSS ทำงาน
+        
+        // ใช้ setTimeout เพื่อให้แอนิเมชัน opacity 0.28s ทำงาน
+        setTimeout(() => {
+            targetElement.style.opacity = '1';
+        }, 10);
     }
-
 
     // === [เพิ่มใหม่] ถ้าเป็นการเปิดหน้า 'sheet-data' ให้เริ่มดึงข้อมูล ===
     if (targetId === 'sheet-data') {
@@ -85,12 +103,13 @@ function showSection(targetId) {
     }
     // === [จบ] ===
 
-
+    // [4] แสดง Footer
     const _mf = document.getElementById('main-footer');
     if (_mf) {
         _mf.style.display = 'block';
-    } // *ตรวจสอบให้ footer แสดง*
+    } 
 
+    // [5] ปิดเมนูมือถือและเมนูย่อย
     const nav = document.getElementById('main-nav');
     if (nav.classList.contains('active')) {
         nav.classList.remove('active');
@@ -111,20 +130,16 @@ function stopAllVideos() {
         if (videoBox.getAttribute('data-video-played') === 'true') {
             const iframe = videoBox.querySelector('iframe');
             if (iframe) {
-                // ดึง src เดิมที่สะอาด (ไม่มี autoplay)
                 let originalSrc = iframe.getAttribute('src');
                 if (originalSrc) {
                     originalSrc = originalSrc.split('?')[0];
-                    // รีเซ็ต src เพื่อหยุดวิดีโอ
                     iframe.setAttribute('src', originalSrc);
                 }
                 iframe.classList.remove('active-video');
-                iframe.style.display = 'none'; // ซ่อน iframe กลับไป
+                iframe.style.display = 'none'; 
             }
-            // รีเซ็ตสถานะกล่องวิดีโอ
             videoBox.setAttribute('data-video-played', 'false');
             
-            // แสดงรูปปกและปุ่ม Play กลับมา (เผื่อ CSS ไม่ทำงาน)
             const img = videoBox.querySelector('.info-icon');
             const btn = videoBox.querySelector('.video-play-button');
             if(img) img.style.display = 'block';
@@ -139,7 +154,7 @@ function stopAllVideos() {
         const targetContainer = container.querySelector('[id^="youtube-media-"], [id^="facebook-video-"], [id^="legend-youtube-"]');
 
         if (thumbnailContainer && thumbnailContainer.style.display === 'none') {
-            targetContainer.innerHTML = ''; // ลบ iframe ทิ้ง
+            if (targetContainer) targetContainer.innerHTML = ''; 
             thumbnailContainer.style.display = 'block';
             thumbnailContainer.removeAttribute('data-loaded');
         }
@@ -153,63 +168,56 @@ function playEmbeddedVideo() {
     const oldIframe = document.getElementById('pvdVideo');
 
     if (oldIframe) {
-        // 1. เตรียม URL พร้อม autoplay
         let src = oldIframe.getAttribute('src');
         if (!src) src = "";
         if (src.indexOf('autoplay=1') === -1) {
             src += (src.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1&mute=0';
         }
 
-        // 2. [ไม้ตาย] สร้าง iframe ตัวใหม่ขึ้นมาแทนตัวเก่า
-        // วิธีนี้บังคับให้มือถือโหลดใหม่แน่นอน 100%
         const newIframe = oldIframe.cloneNode(true);
         newIframe.setAttribute('src', src);
         newIframe.style.display = 'block';
         newIframe.classList.add('active-video');
         
-        // 3. สลับที่: ลบตัวเก่า ใส่ตัวใหม่
         oldIframe.parentNode.replaceChild(newIframe, oldIframe);
         
-        // 4. ซ่อนปก
         const img = videoBox.querySelector('.info-icon');
         const btn = videoBox.querySelector('.video-play-button');
         if(img) img.style.display = 'none';
         if(btn) btn.style.display = 'none';
     }
-    videoBox.setAttribute('data-video-played', 'true');
+    if (videoBox) videoBox.setAttribute('data-video-played', 'true');
 }
 
 /* *UPDATED: ฟังก์ชันสำหรับเล่นวิดีโอตัวที่ 2 (ใช้เทคนิคสร้างใหม่)* */
 function playEmbeddedVideo2() {
     stopAllVideos();
     const videoBoxes = document.querySelectorAll('#about .video-box');
+    if (videoBoxes.length < 2) return;
+    
     const videoBox = videoBoxes[1]; // กล่องที่ 2
     const oldIframe = document.getElementById('pvdVideo2');
 
     if (oldIframe) {
-        // 1. เตรียม URL พร้อม autoplay
         let src = oldIframe.getAttribute('src');
         if (!src) src = "";
         if (src.indexOf('autoplay=1') === -1) {
             src += (src.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1&mute=0';
         }
 
-        // 2. [ไม้ตาย] สร้าง iframe ตัวใหม่
         const newIframe = oldIframe.cloneNode(true);
         newIframe.setAttribute('src', src);
         newIframe.style.display = 'block';
         newIframe.classList.add('active-video');
 
-        // 3. สลับที่
         oldIframe.parentNode.replaceChild(newIframe, oldIframe);
         
-        // 4. ซ่อนปก
         const img = videoBox.querySelector('.info-icon');
         const btn = videoBox.querySelector('.video-play-button');
         if(img) img.style.display = 'none';
         if(btn) btn.style.display = 'none';
     }
-    videoBox.setAttribute('data-video-played', 'true');
+    if (videoBox) videoBox.setAttribute('data-video-played', 'true');
 }
 
 
@@ -231,7 +239,7 @@ function loadFacebookVideo(thumbnailElement, targetId) {
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('allowfullscreen', 'true');
     iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
-    targetContainer.appendChild(iframe);
+    if (targetContainer) targetContainer.appendChild(iframe);
     thumbnailElement.style.display = 'none';
     thumbnailElement.setAttribute('data-loaded', 'true');
 }
@@ -247,7 +255,6 @@ function loadYouTubeVideo(thumbnailElement, targetId) {
     const iframe = document.createElement('iframe');
     iframe.setAttribute('width', '100%');
     iframe.setAttribute('height', '300');
-    // *แก้ไข: เพิ่ม ?autoplay=1*
     iframe.setAttribute('src', videoSrc + '?autoplay=1');
     iframe.setAttribute('loading', 'lazy');
     iframe.setAttribute('title', 'YouTube video player');
@@ -256,14 +263,13 @@ function loadYouTubeVideo(thumbnailElement, targetId) {
     iframe.setAttribute('allowfullscreen', 'true');
     iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     iframe.setAttribute('style', 'display:block; height: 300px;');
-    targetContainer.appendChild(iframe);
+    if (targetContainer) targetContainer.appendChild(iframe);
     thumbnailElement.style.display = 'none';
     thumbnailElement.setAttribute('data-loaded', 'true');
 }
 
 // Data structure for the 9 service categories (Slider)
 const nineServicesData = [
-    // <<< Java ใช้ชื่อไฟล์ตามที่พี่นัทส่งมา 9 ชื่อแล้วค่ะ >>>
     {
         img: 'service-1-chassis.jpg',
         title: 'ช่วงล่าง (Suspension & Chassis)',
@@ -315,19 +321,17 @@ const nineServicesData = [
 var serviceModal = document.getElementById("serviceModal");
 
 function openServiceModal(title, imgFileName, content) {
-    document.getElementById("modalTitle").innerHTML = title;
-    document.getElementById("modalImage").src = imgFileName;
+    if (document.getElementById("modalTitle")) document.getElementById("modalTitle").innerHTML = title;
+    if (document.getElementById("modalImage")) document.getElementById("modalImage").src = imgFileName;
 
-    // === [แก้ไขใหม่] เพิ่มปุ่ม "อ่านต่อตรงนี้" เข้าไปใน content ===
     const readMoreButtonHTML = '<div style="margin-top: 20px; text-align: right;"><a href="#" class="modal-read-more-link" onclick="tryAgainPopup(); return false;">อ่านต่อตรงนี้</a></div>';
-    document.getElementById("modalContent").innerHTML = content + readMoreButtonHTML;
-    // =========================================================
+    if (document.getElementById("modalContent")) document.getElementById("modalContent").innerHTML = content + readMoreButtonHTML;
 
-    serviceModal.style.display = "block";
+    if (serviceModal) serviceModal.style.display = "block";
 }
 
 function closeServiceModal() {
-    serviceModal.style.display = "none";
+    if (serviceModal) serviceModal.style.display = "none";
 }
 
 function tryAgainPopup() {
@@ -337,12 +341,11 @@ function tryAgainPopup() {
 // --- Slider Logic for Service 1 (9 หมวดหลัก) ---
 let currentSlideIndex = 1;
 
-// Function to dynamically render slides and dots
 function renderSlider() {
     const slideshowContainer = document.querySelector('#nineServicesSliderModal .slideshow-container');
     const indicatorContainer = document.getElementById('slide-indicators');
 
-    if (!slideshowContainer || !indicatorContainer) return; // Safety check
+    if (!slideshowContainer || !indicatorContainer) return; 
 
     slideshowContainer.innerHTML = '';
     indicatorContainer.innerHTML = '';
@@ -368,45 +371,39 @@ function renderSlider() {
     });
 }
 
-// Function to open the slider modal
 function openNineServicesSlider() {
-    // ป้องกันการเล่นวิดีโอซ้ำซ้อน
     stopAllVideos();
 
     const sliderModal = document.getElementById('nineServicesSliderModal');
-    if (!sliderModal) return; // Safety check
-    renderSlider(); // Render fresh slides/dots every time
+    if (!sliderModal) return; 
+    renderSlider(); 
     sliderModal.style.display = 'block';
-    currentSlideIndex = 1; // Reset to the first slide
+    currentSlideIndex = 1; 
     showSlides(currentSlideIndex);
 
-    // Close old modal if somehow open (safety check)
     closeServiceModal();
 }
 
-// Function to close the slider modal
 function closeNineServicesSlider() {
-    document.getElementById('nineServicesSliderModal').style.display = 'none';
+    const sliderModal = document.getElementById('nineServicesSliderModal');
+    if (sliderModal) sliderModal.style.display = 'none';
 }
 
-// Next/previous controls
 function plusSlides(n) {
     showSlides(currentSlideIndex += n);
 }
 
-// Thumbnail image controls
 function currentSlide(n) {
     showSlides(currentSlideIndex = n);
 }
 
-// Main function to display the current slide
 function showSlides(n) {
     let i;
     const slides = document.getElementsByClassName('mySlides');
     const dots = document.getElementsByClassName('dot');
     const totalSlides = nineServicesData.length;
 
-    if (slides.length === 0) return; // Handle empty data
+    if (slides.length === 0) return; 
 
     if (n > totalSlides) {
         currentSlideIndex = 1
@@ -415,26 +412,23 @@ function showSlides(n) {
         currentSlideIndex = totalSlides
     }
 
-    // Hide all slides
     for (i = 0; i < slides.length; i++) {
         slides[i].style.display = 'none';
     }
 
-    // Remove active class from all dots
     for (i = 0; i < dots.length; i++) {
         dots[i].className = dots[i].className.replace(' active-dot', '');
     }
 
-    // Display the current slide and highlight the current dot
     slides[currentSlideIndex - 1].style.display = 'block';
     dots[currentSlideIndex - 1].className += ' active-dot';
 
-    // Update position text
-    document.getElementById('slide-position-text').innerHTML =
-        `${currentSlideIndex} / ${totalSlides}`;
+    const positionText = document.getElementById('slide-position-text');
+    if (positionText) {
+        positionText.innerHTML = `${currentSlideIndex} / ${totalSlides}`;
+    }
 }
 
-// ⭐️ [แก้ไข] อัปเดต window.onclick ให้ปิด Social Modal ได้ด้วย ⭐️
 window.onclick = function(event) {
     if (event.target == serviceModal) {
         closeServiceModal();
@@ -443,43 +437,29 @@ window.onclick = function(event) {
         closeNineServicesSlider();
     }
 
-    // [ใหม่] เพิ่มเงื่อนไขนี้
     if (event.target == document.getElementById('socialModal')) {
         closeSocialModal();
     }
 };
-
-// Initialize slider on load if it's visible (though it starts hidden)
-document.addEventListener('DOMContentLoaded', () => {
-    renderSlider();
-    // The rest of the page initialization logic remains...
-});
-
 
 
 /* =================================================== */
 /* === [ใหม่] โค้ดสำหรับ *อ่าน* ข้อมูล Google Sheet === */
 /* =================================================== */
 
-// (อ่าน) URL .csv จาก Google Sheet ของคุณ
 const googleSheetCSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtvF2qFTMriibojzK5OdL83KZ9JgSiogmrjqp19iEN1CTN_9kDYnmAg7OqnkrWCkRx64zllusnk1as/pub?output=csv';
-
-// (ป้องกันการโหลดซ้ำ)
 let isSheetDataLoaded = false;
 
 async function fetchGoogleSheetData() {
-    // ถ้าโหลดแล้ว ไม่ต้องโหลดซ้ำ
     if (isSheetDataLoaded) {
         return;
     }
 
     const container = document.getElementById('google-sheet-data-container');
-    container.innerHTML = '<p>กำลังโหลดข้อมูล...</p>';
+    if (container) container.innerHTML = '<p>กำลังโหลดข้อมูล...</p>';
 
     try {
-        // เพิ่ม "Cache Busting" เพื่อให้ได้ข้อมูลล่าสุดเสมอ
         const urlToFetch = `${googleSheetCSV_URL}&t=${new Date().getTime()}`;
-
         const response = await fetch(urlToFetch);
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -489,34 +469,30 @@ async function fetchGoogleSheetData() {
 
         const data = parseGoogleSheetCSV(csvText);
         displayGoogleSheetData(data);
-        isSheetDataLoaded = true; // ตั้งค่าว่าโหลดเสร็จแล้ว
+        isSheetDataLoaded = true; 
 
     } catch (error) {
         console.error('Error fetching or parsing data:', error);
-        container.innerHTML = '<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+        if (container) container.innerHTML = '<p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
     }
 }
 
 function parseGoogleSheetCSV(csvText) {
-    // แยกแต่ละบรรทัด (ตัดช่องว่างหน้า-หลัง และกรองบรรทัดว่าง)
     const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) return [];
 
-    // บรรทัดแรกคือ Header (ชื่อคอลัมน์)
     const headers = lines[0].split(',').map(header => header.trim());
-
     const result = [];
 
-    // วนลูปตั้งแต่บรรทัดที่ 2 (ข้อมูลจริง)
     for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(value => value.trim());
 
         if (values.length !== headers.length) {
-            continue; // ข้ามบรรทัดที่ข้อมูลไม่ครบ
+            continue; 
         }
 
         const obj = {};
         for (let j = 0; j < headers.length; j++) {
-            // ลบเครื่องหมายคำพูด (") ที่อาจติดมา
             obj[headers[j]] = values[j].replace(/^"|"$/g, '');
         }
         result.push(obj);
@@ -527,16 +503,14 @@ function parseGoogleSheetCSV(csvText) {
 
 function displayGoogleSheetData(data) {
     const container = document.getElementById('google-sheet-data-container');
+    if (!container) return;
 
     if (!data || data.length === 0) {
         container.innerHTML = '<p>ไม่พบข้อมูล</p>';
         return;
     }
 
-    // --- สร้างตาราง HTML ---
     const table = document.createElement('table');
-
-    // สร้างส่วนหัวของตาราง (thead)
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
 
@@ -549,7 +523,6 @@ function displayGoogleSheetData(data) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // สร้างส่วนข้อมูล (tbody)
     const tbody = document.createElement('tbody');
     data.forEach(rowData => {
         const tr = document.createElement('tr');
@@ -564,7 +537,6 @@ function displayGoogleSheetData(data) {
     });
     table.appendChild(tbody);
 
-    // เคลียร์ "กำลังโหลด..." แล้วใส่ตารางลงไป
     container.innerHTML = '';
     container.appendChild(table);
 }
@@ -584,16 +556,8 @@ function displayGoogleSheetData(data) {
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvCYDJI_5fpjlfRAjX19AaBHzilCjaV7EviHFxNaX5zpbT-U0rmmbVPWPWDcOHr';
 
 
-// รอให้หน้าเว็บโหลดเสร็จก่อน แล้วค่อยเชื่อมฟอร์ม
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('add-data-form');
-    if (form) {
-        form.addEventListener('submit', handleFormSubmit);
-    }
-});
-
 async function handleFormSubmit(event) {
-    event.preventDefault(); // ป้องกันหน้าเว็บโหลดใหม่
+    event.preventDefault(); 
 
     const coad = document.getElementById('coadInput').value;
     const url = document.getElementById('urlInput').value;
@@ -601,21 +565,26 @@ async function handleFormSubmit(event) {
     const button = event.target.querySelector('button');
 
     if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_DEPLOYED_WEB_APP_URL_HERE') {
-        messageEl.style.color = 'red';
-        messageEl.textContent = '❌ ข้อผิดพลาด: ยังไม่ได้ตั้งค่า GOOGLE_APPS_SCRIPT_URL ใน script.js';
+        if (messageEl) {
+            messageEl.style.color = 'red';
+            messageEl.textContent = '❌ ข้อผิดพลาด: ยังไม่ได้ตั้งค่า GOOGLE_APPS_SCRIPT_URL ใน script.js';
+        }
         return;
     }
 
     if (!coad || !url) {
-        messageEl.style.color = 'red';
-        messageEl.textContent = 'กรุณากรอกข้อมูลให้ครบทั้ง 2 ช่อง';
+        if (messageEl) {
+            messageEl.style.color = 'red';
+            messageEl.textContent = 'กรุณากรอกข้อมูลให้ครบทั้ง 2 ช่อง';
+        }
         return;
     }
 
-    // ล็อกปุ่ม
-    button.disabled = true;
-    button.textContent = 'กำลังส่ง...';
-    messageEl.textContent = '';
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'กำลังส่ง...';
+    }
+    if (messageEl) messageEl.textContent = '';
 
     const data = {
         coad: coad,
@@ -625,8 +594,6 @@ async function handleFormSubmit(event) {
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
             method: 'POST',
-            // หมายเหตุ: เราส่งเป็น text/plain เพื่อเลี่ยงปัญหา CORS Preflight
-            // ตัว Apps Script (doPost) ของเราถูกตั้งค่าให้รับ e.postData.contents อยู่แล้ว
             headers: {
                 'Content-Type': 'text/plain'
             },
@@ -634,34 +601,34 @@ async function handleFormSubmit(event) {
             redirect: 'follow'
         });
 
-        // เราสามารถอ่าน JSON ที่ Apps Script ส่งกลับมาได้
         const result = await response.json();
 
         if (result.status === 'success') {
-            messageEl.style.color = 'green';
-            messageEl.textContent = '✅ ส่งข้อมูลสำเร็จ!';
+            if (messageEl) {
+                messageEl.style.color = 'green';
+                messageEl.textContent = '✅ ส่งข้อมูลสำเร็จ!';
+            }
 
-            // เคลียร์ฟอร์ม
             document.getElementById('coadInput').value = '';
             document.getElementById('urlInput').value = '';
 
-            // สำคัญมาก: ถ้าข้อมูลอัปเดตแล้ว เราต้องรีเซ็ตสถานะการโหลด
-            // เพื่อให้ครั้งต่อไปที่คลิกเมนู "ข้อมูลชีต" มันโหลดข้อมูลใหม่
             isSheetDataLoaded = false;
 
         } else {
-            // ถ้า Apps Script ส่ง error กลับมา
             throw new Error(result.message);
         }
 
     } catch (error) {
         console.error('Error submitting data:', error);
-        messageEl.style.color = 'red';
-        messageEl.textContent = '❌ เกิดข้อผิดพลาด: ' + error.message;
+        if (messageEl) {
+            messageEl.style.color = 'red';
+            messageEl.textContent = '❌ เกิดข้อผิดพลาด: ' + error.message;
+        }
     } finally {
-        // ปลดล็อกปุ่ม
-        button.disabled = false;
-        button.textContent = 'เพิ่มข้อมูล';
+        if (button) {
+            button.disabled = false;
+            button.textContent = 'เพิ่มข้อมูล';
+        }
     }
 }
 /* === [จบ] โค้ดสำหรับ *ส่ง* ข้อมูล === */
@@ -672,58 +639,30 @@ async function handleFormSubmit(event) {
   =============================================================
 */
 function checkStatus() {
-    // 
-    // VVVV --- ตั้งรหัสผ่าน Admin ของคุณตรงนี้ --- VVVV
-    //
     const ADMIN_PASSWORD = "admin"; // (รหัสเดียวกันกับใน Apps Script)
-    //
-    // ^^^^ ----------------------------------- ^^^^
-    //
-
     const inputEl = document.getElementById('repairCode');
     const resultEl = document.getElementById('result');
+    if (!inputEl || !resultEl) return;
+
     const code = inputEl.value;
 
     if (code === ADMIN_PASSWORD) {
+        const adminMenuGroup = document.getElementById('admin-menu-group');
+        if (adminMenuGroup) adminMenuGroup.style.display = 'inline-block';
 
-        // --- 1. ถ้ารหัสคือ "admin" (รหัสลับถูก) ---
-
-        // 1.1 แสดงเมนู "แผงควบคุม (Admin) ▾" ที่ซ่อนอยู่
-        document.getElementById('admin-menu-group').style.display = 'inline-block';
-
-        // 1.2 แจ้งเตือนแอดมิน
         resultEl.innerHTML = '<span style="color: #00aaff;">✅ ปลดล็อกเมนู Admin สำเร็จ!</span>';
 
-        // 1.3 (สำคัญ) พาไปหน้า Admin Panel ทันที
         showSection('admin-panel');
 
-        // 1.4 ล้างค่าในช่องกรอก
         inputEl.value = '';
 
     } else {
-
-        // --- 2. ถ้ารหัสเป็นอย่างอื่น (เช่น PVD123 ของลูกค้า) ---
-
-        resultEl.style.color = '#eee'; // (ตั้งสีข้อความกลับเป็นปกติ)
+        resultEl.style.color = '#eee'; 
         resultEl.innerHTML = `กำลังค้นหาสถานะสำหรับรหัส: ${code}...`;
-
-        // 
-        // (*** หมายเหตุ ***)
-        // (นี่คือส่วนที่คุณต้องไปเขียนโค้ดต่อ... 
-        //  เพื่อดึงข้อมูลสถานะของลูกค้าจาก Google Sheet โดยใช้รหัส 'code')
-        //
-
-        // (ตัวอย่างผลลัพธ์สมมติ)
-        // const mockData = {
-        //     "PVD1234": "กำลังซ่อมเครื่องยนต์ - คาดว่าจะเสร็จภายใน 2 วัน",
-        //     "PVD5678": "ซ่อมเสร็จแล้ว - รอการตรวจสอบขั้นสุดท้าย"
-        // };
-        // resultEl.innerHTML = mockData[code] ? `<p style='color:#00aaff;'>${mockData[code]}</p>` : "<p style='color:orange;'>ไม่พบข้อมูล</p>";
     }
 }
 
 function goBack() {
-    // คำสั่งมาตรฐานของ JavaScript เพื่อให้เบราว์เซอร์ย้อนกลับไปหน้าก่อนหน้า
     window.history.back();
 }
 
@@ -732,82 +671,166 @@ function goBack() {
    ===============================================
 */
 
-// 1. ฟังก์ชันเปิด (หา ID ตอนกด)
 function openSocialModal() {
     var modal = document.getElementById("socialModal");
     if (modal) modal.style.display = "block";
 }
 
-// 2. ฟังก์ชันปิด (หา ID ตอนกด)
 function closeSocialModal() {
     var modal = document.getElementById("socialModal");
     if (modal) modal.style.display = "none";
 }
 
-// 3. [ลบ] เราลบ addEventListener ทิ้ง เพราะเราใช้ onclick ใน HTML แล้ว
 /* ================================================= */
 /* ส่วนที่เพิ่มใหม่: Logic สำหรับหน้าคู่มือเช็คระยะ */
 /* ================================================= */
 
 function showCheckUpGuide() {
-    // ซ่อนหน้ารายการบริการเดิม
-    const serviceList = document.getElementById('service-content-list');
-    if (serviceList) serviceList.style.display = 'none';
+    showSection('service-content'); // หรือ Section ID ที่บรรจุ Service
 
-    // แสดง Container ของคู่มือ
+    const serviceList = document.getElementById('service-content-list');
     const guideContent = document.getElementById('check-up-guide-content');
+
+    if (serviceList) serviceList.style.display = 'none';
     if (guideContent) guideContent.style.display = 'block';
 
-    // รีเซ็ตให้แสดงหน้าสารบัญ (TOC) ก่อนเสมอ
     showStepContent(0);
 }
 
 function showServiceList() {
-    // แสดงหน้ารายการบริการเดิมกลับมา
     const serviceList = document.getElementById('service-content-list');
-    if (serviceList) serviceList.style.display = 'block';
-
-    // ซ่อนคู่มือ
     const guideContent = document.getElementById('check-up-guide-content');
+
+    if (serviceList) serviceList.style.display = 'block';
     if (guideContent) guideContent.style.display = 'none';
 
     window.scrollTo(0, 0);
 }
 
 function showStepContent(step) {
-    // ดึง Element ทั้งหมด
     const tocView = document.getElementById('toc-view');
     const step1 = document.getElementById('step1-view');
     const step2 = document.getElementById('step2-view');
     const step3 = document.getElementById('step3-view');
 
-    // ซ่อนทั้งหมดก่อน (Safety check: ตรวจว่ามี element จริงไหมก่อนสั่ง style)
-    if (tocView) tocView.style.display = 'none';
-    if (step1) step1.style.display = 'none';
-    if (step2) step2.style.display = 'none';
-    if (step3) step3.style.display = 'none';
+    const views = [tocView, step1, step2, step3];
+    views.forEach(view => {
+        if (view) view.style.display = 'none';
+    });
 
-    // แสดงเฉพาะส่วนที่เลือก
-    if (step === 1 && step1) {
-        step1.style.display = 'block';
-    } else if (step === 2 && step2) {
-        step2.style.display = 'block';
-    } else if (step === 3 && step3) {
-        step3.style.display = 'block';
-    } else {
-        // ค่า Default หรือ 0 ให้กลับไปหน้าสารบัญ
-        if (tocView) tocView.style.display = 'block';
-    }
+    let targetView;
+    if (step === 1) targetView = step1;
+    else if (step === 2) targetView = step2;
+    else if (step === 3) targetView = step3;
+    else targetView = tocView;
 
-    // เลื่อนจอขึ้นบนสุด
+    if (targetView) targetView.style.display = 'block';
+
     window.scrollTo(0, 0);
 }
 
-// ตรวจสอบเมื่อโหลดหน้า (กรณีใส่ใน HTML body onload)
-// เพื่อซ่อนส่วนคู่มือไว้ก่อน
-document.addEventListener("DOMContentLoaded", function() {
+
+/* =================================================== */
+/* === [NEW] โค้ดสำหรับโหลดเนื้อหา Deep Dive Video === */
+/* =================================================== */
+
+let isDeepDiveLoaded = false;
+
+async function loadDeepDiveContent() {
+    if (isDeepDiveLoaded) {
+        return;
+    }
+
+    const placeholder = document.getElementById('deep-dive-placeholder');
+    
+    try {
+        const response = await fetch('deep_dive.html'); 
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const content = await response.text(); 
+        
+        if (placeholder) {
+            placeholder.innerHTML = content; 
+            isDeepDiveLoaded = true; 
+        }
+
+    } catch (error) {
+        console.error('Error loading deep dive content:', error);
+        if (placeholder) {
+            placeholder.innerHTML = '<p style="color:red; text-align:center;">❌ ไม่สามารถโหลดส่วนวิดีโอ Deep Dive ได้</p>';
+        }
+    }
+}
+
+/* =================================================== */
+/* === [NEW] โค้ดสำหรับโหลดเนื้อหา Reviews.html === */
+/* =================================================== */
+
+let isReviewsLoaded = false;
+
+async function loadReviewsContent() {
+    if (isReviewsLoaded) {
+        return;
+    }
+
+    const placeholder = document.getElementById('reviews-placeholder');
+    
+    try {
+        const response = await fetch('reviews.html'); 
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const content = await response.text(); 
+        
+        if (placeholder) {
+            placeholder.innerHTML = content; 
+            isReviewsLoaded = true; 
+        }
+
+    } catch (error) {
+        console.error('Error loading reviews content:', error);
+        if (placeholder) {
+            placeholder.innerHTML = '<p style="color:red; text-align:center;">❌ ไม่สามารถโหลดส่วนรีวิวได้</p>';
+        }
+    }
+}
+
+
+/* =================================================== */
+/* === [NEW] การรวมคำสั่งทำงานเมื่อหน้าเว็บโหลดเสร็จ === */
+/* =================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialise Slider
+    renderSlider();
+
+    // 2. Bind Form Submission
+    const form = document.getElementById('add-data-form');
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // 3. Hide Check-up Guide (Initial State)
     const guideContent = document.getElementById('check-up-guide-content');
     if (guideContent) {
         guideContent.style.display = 'none';
     }
+
+    // 4. Load Modular HTML Content (ในพื้นหลัง)
+    loadDeepDiveContent(); 
+    loadReviewsContent(); 
+
+    // 5. [สำคัญมาก] ตรวจสอบว่าเมนูไหนควรเปิดตอนเริ่มต้น
+    const initialHash = window.location.hash || '#home';
+    if (initialHash === '#home') {
+        initializePage(); // เรียกใช้ initializePage (ซึ่งเรียก goHome)
+    } else {
+        showSection(initialHash.substring(1)); // ตัด # ออก
+    }
 });
+ๆ

@@ -1,4 +1,4 @@
-body { margin: 0; font-family: 'segoe ui', sans-serif; background-color: #111; color: #eee; }
+Body { margin: 0; font-family: 'segoe ui', sans-serif; background-color: #111; color: #eee; }
 header { background: #000; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; box-sizing: border-box; height: 60px; }
 header h1 { color: #00aaff; margin: 0; font-size: 1.5em; }
 nav a, .submenu-group > a { color: #eee; text-decoration: none; font-weight: 500; cursor: pointer; display: inline-block; padding: 0 0 4px 0; border-bottom: 2px solid transparent; transition: border-bottom .2s, color .2s; }
@@ -35,29 +35,90 @@ nav > a:hover, .submenu-group > a:hover { color: #00aaff; border-bottom: 2px sol
 #result p { margin-top: 1rem; font-size: 1.1em; font-weight: bold; }
 
 #about { padding-top: 60px; }
-.video-info-container { display: flex; gap: 30px; align-items: flex-start; margin-bottom: 20px; }
-.video-box { flex: 1 1 50%; max-width: 50%; position: relative; padding-top: 28.125%; height: 100; overflow: hidden; cursor: pointer; border-radius: 10px; }
-.video-box > *, .info-icon { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
-.info-icon { opacity: 0.85; }
-.info-details-box { flex: 1 1 50%; padding-top: 10px; }
-.info-details-box p { color: #ccc; line-height: 1.6; }
-.info-label { font-size: 18px; font-weight: bold; color: #00aaff; }
-iframe.active-video { display: block !important; width: 100% !important; height: auto !important; aspect-ratio: 16/9; border-radius: 10px; }
-.video-box[data-video-played="true"] .info-icon, .video-box[data-video-played="true"] .video-play-button { display: none !important; }
 
+/* ---------------------------------------------------- */
+/* === [CLEAN VIOO FIX] CSS สำหรับวิดีโอ (16:9) - เริ่มต้นการแก้ไข ***/
+/* ---------------------------------------------------- */
+
+/* A. Video Info/Video Box: ตัวกำหนดสัดส่วน 16:9 และตำแหน่ง Absolute */
+.video-info-container { display: flex; gap: 30px; align-items: flex-start; margin-bottom: 20px; }
+.video-box { 
+    flex: 1 1 50%; max-width: 50%; 
+    border-radius: 10px;
+    position: relative !important;
+    padding-bottom: 56.25% !important; /* 16:9 Aspect Ratio */
+    height: 0 !important; /* บังคับให้ความสูงเป็น 0 เพื่อให้ padding-bottom ทำงาน */
+    overflow: hidden;
+    cursor: pointer;
+    background: #000;
+} 
+.video-box > *, .info-icon { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+
+/* B. Video Player/Thumbnail Container: ตัวกำหนดสัดส่วน 16:9 สำหรับการ์ดวิดีโอ */
+.video-player, 
+.video-thumbnail-container { 
+    position: relative !important;
+    padding-bottom: 56.25% !important; /* 16:9 Aspect Ratio */
+    height: 0 !important;
+    overflow: hidden;
+    cursor: pointer;
+    background: #000;
+    width: 100%;
+}
+
+/* C. องค์ประกอบภายในทั้งหมด: บังคับให้อยู่ในตำแหน่ง Absolute และเต็มพื้นที่ 100% */
+.video-player > *, 
+.video-box > *,
+.video-responsive-container, 
+.video-responsive-container iframe,
+.video-player img, 
+.video-player iframe,
+.video-player .video-play-button {
+    position: absolute !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    object-fit: cover; 
+}
+
+/* D. การจัดการสถานะวิดีโอ */
+iframe.active-video { display: block !important; width: 100% !important; height: 100% !important; border-radius: 10px; z-index: 10; }
+.video-box[data-video-played="true"] .info-icon, 
+.video-box[data-video-played="true"] .video-play-button,
+.video-player[data-video-played="true"] img,
+.video-player[data-video-played="true"] .video-play-button { 
+    display: none !important; 
+    opacity: 0 !important; 
+    visibility: hidden !important; 
+}
+
+
+/* E. ปุ่ม Play */
 .video-play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: url('play button.png') no-repeat center/contain; border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s; opacity: 0.9; z-index: 5; }
 .video-play-button::after { content: none; }
 .video-thumbnail-container:hover .video-play-button, .video-box:hover .video-play-button { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
 
+/* F. Video Cards Wrapper */
 .video-cards-wrapper, #media .facebook-video-cards-wrapper { max-width: 1200px; width: 100%; margin: 20px auto; display: flex; gap: 30px; justify-content: space-between; flex-wrap: wrap; }
-.video-card, #media .facebook-video-card { flex: 1 1 45%; min-width: 300px; max-width: 585px; background: #1a1a1a; border-radius: 8px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; }
-.video-card { height: 500px; }
-#media .facebook-video-card { padding: 0; }
-.video-player, .video-thumbnail-container { height: 300px; position: relative; overflow: hidden; width: 100%; }
+.video-card, #media .facebook-video-card { flex: 1 1 45%; min-width: 300px; max-width: 585px; background: #1a1a1a; border-radius: 8px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; height: auto; } /* ลบ height: 500px; */
 .video-thumbnail-container img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
 .video-card iframe, #media .facebook-video-card iframe { width: 100%; height: 100%; display: none; }
-#media .facebook-video-card iframe { height: 300px !important; min-height: 200px; }
+#media .facebook-video-card iframe { height: 100% !important; min-height: 200px; }
 .video-thumbnail-container { margin-bottom: 0; cursor: pointer; }
+
+
+/* --- [ส่วน Video Info/Video Cards ในหน้าหลักและหน้าย่อย] --- */
+.info-icon { opacity: 0.85; }
+.info-details-box { flex: 1 1 50%; padding-top: 10px; }
+.info-details-box p { color: #ccc; line-height: 1.6; }
+.info-label { font-size: 18px; font-weight: bold; color: #00aaff; }
+
+/* ---------------------------------------------------- */
+/* === [CLEAN VIOO FIX] สิ้นสุดการแก้ไขส่วนวิดีโอ --- */
+/* ---------------------------------------------------- */
+
 
 .video-details { height: 200px; padding: 15px; position: relative; color: #f0f0f0; overflow: hidden; box-sizing: border-box; }
 .video-details h3 { margin-top: 0; color: #00aaff; font-size: 1.2em; }
@@ -202,31 +263,19 @@ footer, #main-footer { background: #000; padding: 20px 30px; text-align: center;
     .chk-text-desktop { display: none; }
     .chk-text-mobile { display: inline-block; }
     
-    /* แก้ไขส่วน Video Layout */
+    /* แก้ไขส่วน Video Layout (Cleaned) */
     .video-info-container { flex-direction: column; gap: 20px; }
     .video-box, .info-details-box { flex: 1 1 100%; max-width: 100%; }
     
+    /* บังคับให้ .video-box ใช้คุณสมบัติ 16:9 ที่กำหนดในส่วนบนสุด */
     .video-box { 
-        padding-top: 56.25%; 
-        position: relative;
+        padding-top: 0 !important; /* ลบ padding-top เก่าที่ผิดออก */
+        padding-bottom: 56.25% !important; /* ยืนยัน 16:9 อีกครั้งเพื่อความชัวร์ */
+        position: relative !important;
     }
     .info-details-box { padding-top: 0; }
     
-    /* 1. ลบ !important ที่บังคับโชว์ตลอดเวลาออก */
-    #about .info-icon, #about .video-play-button { 
-        display: block; 
-        transition: opacity 0.3s;
-    }
-
-    /* 2. เพิ่มกฎซ่อนเมื่อเล่นแล้ว (ต้องมี JS เพิ่ม class หรือ attribute) */
-    .video-box[data-video-played="true"] .info-icon, 
-    .video-box[data-video-played="true"] .video-play-button { 
-        display: none !important; 
-        opacity: 0 !important; 
-        visibility: hidden !important; 
-    }
-
-    /* 3. บังคับ iframe ให้ทับทุกอย่างเมื่อ Active */
+    /* บังคับ iframe ให้ทับทุกอย่างเมื่อ Active ในหน้า About */
     iframe.active-video { 
         display: block !important;
         position: absolute;
@@ -240,15 +289,13 @@ footer, #main-footer { background: #000; padding: 20px 30px; text-align: center;
     .video-cards-wrapper, .facebook-video-cards-wrapper { flex-direction: column; gap: 20px; margin: 20px 0; }
     .video-card, .facebook-video-card { flex: 1 1 100%; height: auto !important; max-width: 100%; }
     
+    /* E. Video Player/Thumbnail Container ในมือถือ */
     .video-player, .video-thumbnail-container { 
-        height: auto !important; 
-        aspect-ratio: 16 / 9 !important; 
-        width: 100% !important; 
-        background-color: #000; 
-        overflow: hidden; 
+        height: 0 !important; 
+        padding-bottom: 56.25% !important; 
         position: relative !important; 
     }
-    
+
     /* Reset z-index ของ thumbnail container เพื่อไม่ให้บัง iframe */
     .video-player img, 
     .video-thumbnail-container img, 
@@ -259,10 +306,10 @@ footer, #main-footer { background: #000; padding: 20px 30px; text-align: center;
         width: 100% !important; 
         height: 100% !important; 
         object-fit: cover !important; 
-        z-index: 1; /* ต่ำกว่า iframe */
+        z-index: 1 !important; /* ต่ำกว่าปุ่มและ iframe */
     }
 
-    /* ปุ่ม Play */
+    /* F. ปุ่ม Play ในมือถือ: ลดขนาดปุ่มลง */
     .video-play-button { 
         display: block !important;
         position: absolute !important; 
@@ -271,7 +318,7 @@ footer, #main-footer { background: #000; padding: 20px 30px; text-align: center;
         top: 50% !important; 
         left: 50% !important; 
         transform: translate(-50%, -50%) !important; 
-        z-index: 5; 
+        z-index: 5 !important; 
     }
 
     .video-details { height: auto; }
@@ -353,3 +400,146 @@ footer, #main-footer { background: #000; padding: 20px 30px; text-align: center;
 .footer-cta { text-align: center; margin-top: 20px; }
 .footer-cta a { background-color: #ffc107; color: #333; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
 .check-up-guide-content { display: none; }
+
+/* ---------------------------------------------------- */
+/* --- [การรวมและแก้ไขส่วน Responsive Container ที่ซ้ำซ้อน] --- */
+/* ---------------------------------------------------- */
+
+/* 1. กล่องบรรจุวิดีโอ (Container) - ต้องห่อหุ้ม iframe ด้วย div ตัวนี้ */
+/* ใช้ .video-player หรือ .video-box เป็นตัวกำหนด 16:9 แทน */
+.video-responsive-container {
+    position: absolute !important; 
+    padding-bottom: 0 !important; 
+    height: 100% !important;
+    width: 100% !important;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    max-width: none;
+    margin: 0;
+}
+
+/* 2. ตัววิดีโอจริง (iframe) - บังคับให้เต็มกล่องบรรจุ */
+.video-responsive-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;  
+    height: 100%; 
+    border: none;
+}
+/* CSS สำหรับส่วน Featured Links ใน index.html */
+#featured-links-section {
+    padding: 40px 20px;
+    background-color: #222; /* พื้นหลังสีเข้มให้เข้ากับธีมหลัก */
+}
+
+.featured-link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.featured-link-card {
+    background-color: #333;
+    color: #eee;
+    padding: 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+    border-left: 5px solid #00aaff; /* สีเน้นหลักของเว็บ */
+    display: block; /* ทำให้คลิกได้ทั้งบล็อก */
+}
+
+.featured-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    background-color: #383838;
+}
+
+.featured-link-card h3 {
+    color: #00aaff;
+    margin-top: 0;
+    font-size: 1.3em;
+}
+
+.featured-link-card p {
+    font-size: 0.95em;
+    line-height: 1.6;
+    margin: 10px 0 15px 0;
+}
+
+.featured-link-card span {
+    display: block;
+    color: #00aaff;
+    font-weight: bold;
+    margin-top: 10px;
+}
+/* ============================================== */
+/* === [MEDIA SECTION] Styles for Deep_dive.html & reviews.html === */
+/* ============================================== */
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.section-title {
+    color: #00aaff; /* สีน้ำเงิน */
+    text-align: center;
+    font-size: 2.2em;
+    padding-top: 100px; /* เว้นจาก Header ด้านบน */
+}
+.section-description {
+    text-align: center;
+    color: #ccc;
+    margin-bottom: 40px;
+    font-size: 1.1em;
+}
+.video-grid {
+    display: grid;
+    gap: 30px;
+    margin-bottom: 50px;
+    /* แสดง 2 คอลัมน์สำหรับจอใหญ่ และ 1 คอลัมน์สำหรับจอมือถือ */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+}
+.video-item h3 {
+    color: #eee;
+    margin-bottom: 10px;
+    font-size: 1.4em;
+    text-align: center;
+}
+.review-grid {
+    display: grid;
+    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.review-card {
+    background: #333;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+.review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+}
+.review-card h4 {
+    color: #00aaff;
+    margin-top: 0;
+}
+.read-more-btn {
+    display: inline-block;
+    color: #00aaff;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 10px;
+}
+/* ปรับให้ Responsive */
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1.8em;
+    }
+}
