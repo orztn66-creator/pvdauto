@@ -1,0 +1,3260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>กมอย AI</title>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;padding-bottom:20px;}
+
+/* ── Top Nav ── */
+.top-nav{background:#161b22;display:flex;border-bottom:2px solid #21262d;}
+.top-btn{flex:1;padding:15px 8px;text-align:center;cursor:pointer;font-size:14px;font-weight:bold;color:#8b949e;border-bottom:3px solid transparent;transition:.2s;}
+.top-btn.active{color:#f0a500;border-bottom-color:#f0a500;}
+
+/* ── Sub Nav ── */
+.sub-nav{background:#0d1117;display:none;gap:8px;padding:10px 14px;border-bottom:1px solid #21262d;overflow-x:auto;}
+.sub-nav.show{display:flex;}
+.sub-btn{padding:8px 18px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;background:#21262d;color:#8b949e;border:none;transition:.2s;}
+.sub-btn.active{background:#f0a500;color:#000;font-weight:bold;}
+
+/* ── Page ── */
+.page{display:none;padding:16px;max-width:660px;margin:auto;}
+.page.show{display:block;}
+.card{background:#161b22;border-radius:14px;padding:18px;margin-bottom:14px;border:1px solid #21262d;}
+.card-title{font-size:16px;font-weight:bold;color:#f0a500;margin-bottom:12px;}
+
+/* ── Slot Grid ── */
+.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.slot{position:relative;background:#0d1117;border:2px dashed #30363d;border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:.2s;}
+.slot:hover{border-color:#f0a500;}
+.slot.filled{border-color:#238636;}
+.slot .s-icon{font-size:22px;pointer-events:none;}
+.slot .s-lbl{font-size:10px;color:#6e7681;text-align:center;margin-top:3px;pointer-events:none;}
+.slot img.thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:8px;}
+.slot .s-del{position:absolute;top:3px;right:3px;background:#da3633;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;z-index:3;line-height:18px;text-align:center;display:none;}
+.slot.filled .s-del{display:block;}
+/* ── Slot Popup (fixed overlay) ── */
+#slotPopup{position:fixed;z-index:200;display:none;flex-direction:column;background:#161b22;border:1px solid #30363d;border-radius:14px;padding:8px;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.7);}
+#slotPopup.show{display:flex;}
+.slot-opt-btn{background:#21262d;border:none;color:#e6edf3;padding:11px 14px;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;transition:.15s;width:100%;margin-bottom:4px;}
+.slot-opt-btn:last-child{margin-bottom:0;}
+.slot-opt-btn:hover{background:#f0a500;color:#000;}
+#slotPopupOverlay{position:fixed;inset:0;z-index:199;display:none;}
+#slotPopupOverlay.show{display:block;}
+
+/* ── GDrive Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:20px;width:90%;max-width:420px;}
+.modal h3{font-size:15px;color:#f0a500;margin-bottom:12px;}
+.modal input{width:100%;padding:10px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:13px;margin-bottom:10px;}
+.modal-btns{display:flex;gap:8px;}
+
+/* ── Buttons ── */
+.btn{width:100%;padding:13px;border:none;border-radius:50px;font-size:14px;font-weight:bold;cursor:pointer;transition:.2s;margin-top:8px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-gold{background:linear-gradient(135deg,#f0a500,#d97706);color:#000;}
+.btn-green{background:linear-gradient(135deg,#238636,#196127);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;}
+.btn-red{background:linear-gradient(135deg,#da3633,#b91c1c);color:#fff;}
+.btn-sm{width:auto;padding:8px 16px;font-size:13px;margin-top:0;}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:24px;display:none;}
+.spin{font-size:30px;display:inline-block;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Result ── */
+.result{display:none;animation:fadeUp .4s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.stars{color:#f0a500;font-size:28px;text-align:center;margin:8px 0;}
+.res-title{font-size:18px;font-weight:bold;color:#fbbf24;text-align:center;margin-bottom:12px;}
+.block{border-radius:10px;padding:14px;margin-bottom:10px;font-size:14px;line-height:1.75;}
+.b-gold{background:#1c1810;border-left:4px solid #f0a500;}
+.b-green{background:#0d2218;border-left:4px solid #238636;}
+.b-purple{background:#130d2a;border-left:4px solid #7c3aed;}
+.b-red{background:#1f0d0d;border-left:4px solid #da3633;}
+.b-blue{background:#0d1a2a;border-left:4px solid #1f6feb;}
+.blbl{font-size:11px;font-weight:bold;margin-bottom:6px;}
+.blbl-gold{color:#f0a500;}.blbl-green{color:#3fb950;}.blbl-purple{color:#a371f7;}.blbl-red{color:#f85149;}.blbl-blue{color:#58a6ff;}
+
+/* ── Canvas overlay result ── */
+.overlay-wrap{position:relative;display:inline-block;width:100%;margin-top:12px;}
+.overlay-wrap canvas{width:100%;border-radius:10px;display:block;}
+.overlay-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:rgba(255,255,255,.75);pointer-events:none;}
+
+/* ── Quality btns ── */
+.q-row{display:flex;gap:8px;margin-top:10px;}
+.q-btn{flex:1;padding:10px;border:2px solid #30363d;border-radius:8px;background:transparent;color:#8b949e;cursor:pointer;font-size:13px;transition:.2s;}
+.q-btn.active{border-color:#f0a500;color:#f0a500;background:#1c1810;}
+
+/* ── Progress ── */
+.prog-wrap{display:none;margin-top:10px;}
+.prog-bg{background:#21262d;border-radius:4px;height:6px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#f0a500,#da3633);transition:width 2s;}
+
+/* form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.fg label{display:block;font-size:12px;color:#8b949e;margin-bottom:5px;}
+.fg input,.fg select{width:100%;padding:10px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-size:14px;}
+
+/* enchant toggles */
+.etoggle{background:#0d1117;border:2px solid #30363d;border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:.2s;color:#8b949e;}
+.etoggle.active{border-color:#f0a500;color:#f0a500;background:#1c1810;}
+
+/* slider rows */
+.slider-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#8b949e;}
+.slider-row input[type=range]{flex:1;accent-color:#f0a500;}
+</style>
+</head>
+<body>
+
+<!-- ══ TOP NAV ══ -->
+<div class="top-nav">
+  <div class="top-btn active" id="tnE" onclick="topTab('E')">✨ Enchant</div>
+  <div class="top-btn" id="tnN" onclick="topTab('N')">👁 <span style="display:none">นรลักษณ์</span></div>
+</div>
+<!-- Sub nav Enchant -->
+<div class="sub-nav show" id="subNavE">
+  <button class="sub-btn active" id="seE" onclick="enchantTab('enhance')">⚡ Enhance</button>
+  <button class="sub-btn" id="seM" onclick="enchantTab('merge')">🔀 Merge</button>
+</div>
+<!-- Sub nav นรลักษณ์ -->
+<div class="sub-nav" id="subNav">
+  <button class="sub-btn active" id="sb1" onclick="subTab(1)">📸 วิเคราะห์จากภาพ</button>
+  <button class="sub-btn" id="sb2" onclick="subTab(2)">📅 วันเวลาเกิด</button>
+</div>
+
+<!-- GDrive Modal -->
+<div class="modal-bg" id="gdriveModal">
+  <div class="modal">
+    <h3>📂 เลือกภาพจาก Google Drive</h3>
+    <div style="background:#0d1117;border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">
+        <b style="color:#f0a500;">ขั้นตอนที่ 1</b> — เปิด Google Drive แล้วเลือกภาพ
+      </div>
+      <button class="btn btn-green btn-sm" style="width:100%;padding:12px;border-radius:10px;" onclick="openDriveTab()">
+        🚀 เปิด Google Drive ในแท็บใหม่
+      </button>
+      <div style="font-size:11px;color:#6e7681;margin-top:6px;line-height:1.6;">
+        1. เลือกภาพที่ต้องการ<br>
+        2. คลิกขวา → <b style="color:#e6edf3;">Share</b> → <b style="color:#e6edf3;">Copy Link</b><br>
+        3. ตั้งค่า <b style="color:#f0a500;">"Anyone with the link"</b><br>
+        4. กลับมาวาง Link ด้านล่าง
+      </div>
+    </div>
+    <div style="background:#0d1117;border-radius:10px;padding:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">
+        <b style="color:#f0a500;">ขั้นตอนที่ 2</b> — วาง Share Link ที่ได้มา
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="gdriveInput" placeholder="https://drive.google.com/file/d/..." style="width:100%;padding:10px 36px 10px 10px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:13px;">
+        <button onclick="pasteFromClipboard('gdriveInput')" title="วางจาก clipboard" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#8b949e;">📋</button>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:10px;">
+      <button class="btn btn-gold btn-sm" style="flex:2;" onclick="loadGDrive()">📥 โหลดภาพ</button>
+      <button class="btn btn-sm" style="background:#21262d;color:#e6edf3;flex:1;" onclick="closeGDrive()">ยกเลิก</button>
+    </div>
+    <div id="gdriveStatus" style="font-size:12px;margin-top:8px;color:#8b949e;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- ══ GOOGLE PHOTOS MODAL ══ -->
+<div class="modal-bg" id="gphotosModal">
+  <div class="modal">
+    <h3><span style="color:#4285F4;">🖼️</span> เลือกภาพจาก Google Photos</h3>
+    <div style="background:#0d1117;border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">
+        <b style="color:#f0a500;">ขั้นตอนที่ 1</b> — เปิด Google Photos แล้วเลือกภาพ
+      </div>
+      <button class="btn btn-sm" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#4285F4,#0F9D58);color:#fff;font-weight:bold;" onclick="openGPhotosTab()">
+        🚀 เปิด Google Photos ในแท็บใหม่
+      </button>
+      <div style="font-size:11px;color:#6e7681;margin-top:6px;line-height:1.6;">
+        1. เลือกภาพที่ต้องการ<br>
+        2. กดปุ่ม <b style="color:#e6edf3;">⋮ (สามจุด)</b> → <b style="color:#e6edf3;">สร้างลิงก์</b><br>
+        3. หรือกดเปิดภาพ → คัดลอก URL จากแถบที่อยู่<br>
+        4. กลับมาวาง URL / Link ด้านล่าง
+      </div>
+    </div>
+    <div style="background:#0d1117;border-radius:10px;padding:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">
+        <b style="color:#f0a500;">ขั้นตอนที่ 2</b> — วาง URL หรือ Share Link
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="gphotosInput" placeholder="https://photos.google.com/photo/... หรือ URL รูปภาพ" style="width:100%;padding:10px 36px 10px 10px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:13px;">
+        <button onclick="pasteFromClipboard('gphotosInput')" title="วางจาก clipboard" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#8b949e;">📋</button>
+      </div>
+      <div style="font-size:11px;color:#6e7681;margin-top:6px;">💡 รองรับ: URL รูปภาพโดยตรง, Google Drive link, หรือลิงก์แชร์จาก Photos</div>
+    </div>
+    <div class="modal-btns" style="margin-top:10px;">
+      <button class="btn btn-gold btn-sm" style="flex:2;" onclick="loadGPhotos()">📥 โหลดภาพ</button>
+      <button class="btn btn-sm" style="background:#21262d;color:#e6edf3;flex:1;" onclick="closeGPhotos()">ยกเลิก</button>
+    </div>
+    <div id="gphotosStatus" style="font-size:12px;margin-top:8px;color:#8b949e;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- ══ ENCHANT ══ -->
+<div id="pgE" class="page show">
+  <div class="card">
+    <div class="card-title">✨ Enchant — เพิ่มคุณภาพภาพระดับสูง</div>
+
+    <!-- Upload -->
+    <div class="upload-container" style="text-align:center; padding:20px; border:2px dashed #444; border-radius:15px;">
+    <h4>📤 ขั้นตอนที่ 1: เลือกรูปภาพของคุณ</h4>
+    
+    <input type="file" id="imageInput" accept="image/*" onchange="handleFileUpload(event)" style="display:none;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
+      <button onclick="document.getElementById('imageInput').click()" style="padding:10px 18px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:20px;cursor:pointer;font-size:13px;">📁 เลือกจากเครื่อง</button>
+      <button onclick="openGPhotosModal('enchant')" style="padding:10px 18px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:20px;cursor:pointer;font-size:13px;"><span style="color:#4285F4;">🖼️</span> Google Photos</button>
+      <button onclick="openGDriveModal(null,'enchant')" style="padding:10px 18px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:20px;cursor:pointer;font-size:13px;">📂 Google Drive</button>
+    </div>
+
+    <div id="userPreview" style="display:none; margin-top:15px;">
+        <p>รูปของคุณ:</p>
+        <img id="imgPreview" src="" style="width:150px; border-radius:10px; border:2px solid #f0a500;">
+    
+    </div>
+</div>
+
+
+
+    <div style="position:relative;background:#0d1117;border:2px dashed #30363d;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;margin-bottom:10px;">
+      <input type="file" id="eFile" accept="image/*" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+      <div style="font-size:34px;margin-bottom:6px;">🖼️</div>
+      <div id="eTxt" style="font-size:13px;color:#6e7681;">แตะเพื่อเลือกภาพ</div>
+    </div>
+    <img id="ePrev" style="width:100%;border-radius:10px;margin-top:8px;display:none;max-height:300px;object-fit:contain;border:1px solid #21262d;">
+
+    <!-- Scale -->
+    <div style="font-size:12px;color:#8b949e;margin:12px 0 6px;">📐 ขนาดที่เพิ่ม (พิกเซล)</div>
+    <div class="q-row">
+      <button class="q-btn active" onclick="setEScale(2,this)">×2</button>
+      <button class="q-btn" onclick="setEScale(3,this)">×3</button>
+      <button class="q-btn" onclick="setEScale(4,this)">×4</button>
+    </div>
+
+    <!-- Enhancement toggles -->
+    <div style="font-size:12px;color:#8b949e;margin:14px 0 8px;">🎛️ เลือกการปรับแต่ง (เปิด/ปิดได้)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+
+      <div class="etoggle active" id="tog-sharp" onclick="toggleE('sharp',this)">
+        <div style="font-size:18px;">🔬</div>
+        <div style="font-size:12px;font-weight:bold;margin-top:3px;">Sharpness</div>
+        <div style="font-size:10px;color:#8b949e;">คมชัดขึ้น</div>
+      </div>
+
+      <div class="etoggle active" id="tog-denoise" onclick="toggleE('denoise',this)">
+        <div style="font-size:18px;">🌫️</div>
+        <div style="font-size:12px;font-weight:bold;margin-top:3px;">Denoise</div>
+        <div style="font-size:10px;color:#8b949e;">ลด noise/เม็ดสี</div>
+      </div>
+
+      <div class="etoggle active" id="tog-color" onclick="toggleE('color',this)">
+        <div style="font-size:18px;">🎨</div>
+        <div style="font-size:12px;font-weight:bold;margin-top:3px;">Color Enhance</div>
+        <div style="font-size:10px;color:#8b949e;">สีสดสวยขึ้น</div>
+      </div>
+
+      <div class="etoggle active" id="tog-face" onclick="toggleE('face',this)">
+        <div style="font-size:18px;">👤</div>
+        <div style="font-size:12px;font-weight:bold;margin-top:3px;">Face Enhance</div>
+        <div style="font-size:10px;color:#8b949e;">หน้าชัดขึ้นพิเศษ</div>
+      </div>
+    </div>
+
+    <!-- Sliders -->
+    <div id="sliderPanel" style="background:#0d1117;border-radius:10px;padding:12px;margin-top:12px;">
+      <div class="slider-row">
+        <span>🔬 ความคมชัด</span>
+        <input type="range" id="sl-sharp" min="0" max="10" value="5" oninput="document.getElementById('vl-sharp').textContent=this.value">
+        <span id="vl-sharp" style="min-width:20px;text-align:right;">5</span>
+      </div>
+      <div class="slider-row" style="margin-top:8px;">
+        <span>🌫️ Denoise</span>
+        <input type="range" id="sl-denoise" min="0" max="10" value="4" oninput="document.getElementById('vl-denoise').textContent=this.value">
+        <span id="vl-denoise" style="min-width:20px;text-align:right;">4</span>
+      </div>
+      <div class="slider-row" style="margin-top:8px;">
+        <span>🎨 Saturation</span>
+        <input type="range" id="sl-sat" min="-10" max="10" value="3" oninput="document.getElementById('vl-sat').textContent=this.value">
+        <span id="vl-sat" style="min-width:20px;text-align:right;">3</span>
+      </div>
+      <div class="slider-row" style="margin-top:8px;">
+        <span>☀️ Brightness</span>
+        <input type="range" id="sl-bright" min="-10" max="10" value="1" oninput="document.getElementById('vl-bright').textContent=this.value">
+        <span id="vl-bright" style="min-width:20px;text-align:right;">1</span>
+      </div>
+      <div class="slider-row" style="margin-top:8px;">
+        <span>◑ Contrast</span>
+        <input type="range" id="sl-contrast" min="-10" max="10" value="2" oninput="document.getElementById('vl-contrast').textContent=this.value">
+        <span id="vl-contrast" style="min-width:20px;text-align:right;">2</span>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="eBtn" onclick="doEnchant()" disabled style="margin-top:14px;">✨ Enchant ภาพ</button>
+    <div class="prog-wrap" id="eProg">
+      <div style="font-size:12px;color:#f0a500;text-align:center;margin-bottom:4px;" id="eProgTxt">⏳ กำลังประมวลผล...</div>
+      <div class="prog-bg"><div class="prog-fill" id="eFill" style="width:0%;"></div></div>
+    </div>
+    <div id="eInfo" style="display:none;text-align:center;font-size:13px;color:#3fb950;margin-top:8px;"></div>
+
+    <!-- Before/After compare -->
+    <div id="compareWrap" style="display:none;margin-top:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:6px;text-align:center;">👆 เลื่อนซ้าย/ขวาเพื่อเปรียบเทียบ Before / After</div>
+      <div id="compareBox" style="position:relative;overflow:hidden;border-radius:10px;border:1px solid #30363d;cursor:ew-resize;user-select:none;">
+        <canvas id="eCanvasAfter" style="display:block;width:100%;"></canvas>
+        <div id="compareOverlay" style="position:absolute;inset:0;overflow:hidden;">
+          <canvas id="eCanvasBefore" style="display:block;width:100%;position:absolute;top:0;left:0;"></canvas>
+        </div>
+        <div id="compareDivider" style="position:absolute;top:0;bottom:0;width:3px;background:#f0a500;cursor:ew-resize;transform:translateX(-50%);">
+          <div style="position:absolute;top:50%;transform:translate(-50%,-50%);background:#f0a500;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;">↔️</div>
+        </div>
+        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;">BEFORE</div>
+        <div id="afterLabel" style="position:absolute;top:8px;right:8px;background:rgba(240,165,0,.85);color:#000;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:bold;">AFTER</div>
+      </div>
+    </div>
+
+    <canvas id="eCanvas" style="display:none;"></canvas>
+    <button class="btn btn-green" id="eSave" style="display:none;margin-top:10px;" onclick="saveEnchant()">💾 บันทึกภาพ Enchant (Full Res)</button>
+  </div>
+</div>
+
+<!-- ══ MERGE ══ -->
+<div id="pgMerge" class="page">
+  <div class="card">
+    <div class="card-title">🔀 Merge — ซ้อนเลเยอร์ภาพให้เนียนสมจริง</div>
+
+    <!-- ปัญหาและวิธีแก้ -->
+    <div style="background:#0d1117;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:#8b949e;">
+      <div style="color:#f0a500;font-weight:bold;margin-bottom:6px;">⚠️ สาเหตุที่ภาพซ้อนดูไม่เนียน:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="background:#161b22;padding:8px;border-radius:8px;border-left:3px solid #da3633;">
+          <div style="color:#f85149;font-size:11px;font-weight:bold;">❌ ปัญหา</div>
+          <div>• ขอบแข็ง (Hard Edge)</div>
+          <div>• สีโทนไม่ตรงกัน</div>
+          <div>• แสง/เงาไม่ Match</div>
+          <div>• ขนาด/มุมต่างกัน</div>
+          <div>• Alpha ไม่ smooth</div>
+        </div>
+        <div style="background:#161b22;padding:8px;border-radius:8px;border-left:3px solid #3fb950;">
+          <div style="color:#3fb950;font-size:11px;font-weight:bold;">✅ ระบบแก้ด้วย</div>
+          <div>• Feather Mask</div>
+          <div>• Color Match</div>
+          <div>• Luminosity Blend</div>
+          <div>• Transform Control</div>
+          <div>• Multi-pass Blend</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base Image -->
+    <div style="font-size:12px;color:#8b949e;margin-bottom:6px;">📌 <b style="color:#e6edf3;">ภาพพื้นหลัง (Base)</b> — ภาพหลักที่จะนำเลเยอร์มาซ้อน</div>
+    <div style="position:relative;background:#0d1117;border:2px dashed #30363d;border-radius:10px;padding:22px;text-align:center;margin-bottom:6px;">
+      <input type="file" id="mBase" accept="image/*" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="onMergeFile('base',this)">
+      <div id="mBaseTxt" style="font-size:13px;color:#6e7681;">📷 แตะเพื่อเลือกภาพพื้นหลัง</div>
+      <img id="mBasePrev" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px;display:none;">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="openGPhotosModal('merge-base')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;"><span style="color:#4285F4;">🖼️</span> Google Photos</button>
+      <button onclick="openGDriveModal(null,'merge-base')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;">📂 Google Drive</button>
+    </div>
+
+    <!-- Layer Image -->
+    <div style="font-size:12px;color:#8b949e;margin-bottom:6px;">🔼 <b style="color:#e6edf3;">ภาพเลเยอร์ (Layer)</b> — ภาพที่จะนำมาซ้อนทับ</div>
+    <div style="position:relative;background:#0d1117;border:2px dashed #1f6feb;border-radius:10px;padding:22px;text-align:center;margin-bottom:6px;">
+      <input type="file" id="mLayer" accept="image/*" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="onMergeFile('layer',this)">
+      <div id="mLayerTxt" style="font-size:13px;color:#6e7681;">📷 แตะเพื่อเลือกภาพเลเยอร์</div>
+      <img id="mLayerPrev" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px;display:none;">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="openGPhotosModal('merge-layer')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;"><span style="color:#4285F4;">🖼️</span> Google Photos</button>
+      <button onclick="openGDriveModal(null,'merge-layer')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;">📂 Google Drive</button>
+    </div>
+
+    <!-- Controls -->
+    <div style="background:#0d1117;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#f0a500;font-weight:bold;margin-bottom:10px;">🎛️ ปรับแต่งการ Merge</div>
+
+      <!-- Blend Mode -->
+      <div class="slider-row" style="margin-bottom:10px;">
+        <span style="min-width:90px;">Blend Mode</span>
+        <select id="mBlendMode" style="flex:1;padding:7px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:13px;">
+          <option value="normal">Normal</option>
+          <option value="multiply">Multiply (เข้มขึ้น)</option>
+          <option value="screen">Screen (สว่างขึ้น)</option>
+          <option value="overlay" selected>Overlay (เพิ่มความเข้ม)</option>
+          <option value="soft-light">Soft Light (นุ่มนวล)</option>
+          <option value="hard-light">Hard Light (เข้มชัด)</option>
+          <option value="luminosity">Luminosity (ตามแสง)</option>
+          <option value="color">Color (ตามสี)</option>
+        </select>
+      </div>
+
+      <!-- Opacity -->
+      <div class="slider-row" style="margin-bottom:8px;">
+        <span style="min-width:90px;">Opacity</span>
+        <input type="range" id="mOpacity" min="0" max="100" value="85" oninput="document.getElementById('mOpVal').textContent=this.value+'%'">
+        <span id="mOpVal" style="min-width:36px;text-align:right;">85%</span>
+      </div>
+
+      <!-- Feather / Edge Blur -->
+      <div class="slider-row" style="margin-bottom:8px;">
+        <span style="min-width:90px;">Feather Edge</span>
+        <input type="range" id="mFeather" min="0" max="30" value="8" oninput="document.getElementById('mFtVal').textContent=this.value+'px'">
+        <span id="mFtVal" style="min-width:36px;text-align:right;">8px</span>
+      </div>
+
+      <!-- Position X -->
+      <div class="slider-row" style="margin-bottom:8px;">
+        <span style="min-width:90px;">Position X</span>
+        <input type="range" id="mPosX" min="-100" max="100" value="0" oninput="document.getElementById('mPxVal').textContent=this.value+'%'">
+        <span id="mPxVal" style="min-width:36px;text-align:right;">0%</span>
+      </div>
+
+      <!-- Position Y -->
+      <div class="slider-row" style="margin-bottom:8px;">
+        <span style="min-width:90px;">Position Y</span>
+        <input type="range" id="mPosY" min="-100" max="100" value="0" oninput="document.getElementById('mPyVal').textContent=this.value+'%'">
+        <span id="mPyVal" style="min-width:36px;text-align:right;">0%</span>
+      </div>
+
+      <!-- Scale Layer -->
+      <div class="slider-row" style="margin-bottom:8px;">
+        <span style="min-width:90px;">Layer Scale</span>
+        <input type="range" id="mScale" min="10" max="200" value="100" oninput="document.getElementById('mScVal').textContent=this.value+'%'">
+        <span id="mScVal" style="min-width:36px;text-align:right;">100%</span>
+      </div>
+
+      <!-- Color Match -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+        <input type="checkbox" id="mColorMatch" checked style="accent-color:#f0a500;width:16px;height:16px;">
+        <label for="mColorMatch" style="font-size:12px;color:#e6edf3;cursor:pointer;">🎨 Color Match — ปรับโทนสีเลเยอร์ให้ตรงกับพื้นหลัง</label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+        <input type="checkbox" id="mLumiMatch" checked style="accent-color:#f0a500;width:16px;height:16px;">
+        <label for="mLumiMatch" style="font-size:12px;color:#e6edf3;cursor:pointer;">☀️ Luminosity Match — ปรับแสง/เงาให้ match</label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+        <input type="checkbox" id="mShadow" style="accent-color:#f0a500;width:16px;height:16px;">
+        <label for="mShadow" style="font-size:12px;color:#e6edf3;cursor:pointer;">🌑 เพิ่ม Drop Shadow รอบเลเยอร์</label>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="mBtn" onclick="doMerge()" disabled>🔀 Merge ภาพ</button>
+
+    <div class="prog-wrap" id="mProg">
+      <div style="font-size:12px;color:#f0a500;text-align:center;margin-bottom:4px;" id="mProgTxt">⏳ กำลัง Merge...</div>
+      <div class="prog-bg"><div class="prog-fill" id="mFill" style="width:0%;"></div></div>
+    </div>
+
+    <!-- Result compare -->
+    <div id="mCompareWrap" style="display:none;margin-top:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:6px;text-align:center;">👆 เลื่อนเปรียบเทียบ Before / After</div>
+      <div id="mCompareBox" style="position:relative;overflow:hidden;border-radius:10px;border:1px solid #30363d;cursor:ew-resize;user-select:none;">
+        <canvas id="mCanvasAfter" style="display:block;width:100%;"></canvas>
+        <div id="mCompareOverlay" style="position:absolute;inset:0;overflow:hidden;">
+          <canvas id="mCanvasBefore" style="display:block;width:100%;position:absolute;top:0;left:0;"></canvas>
+        </div>
+        <div id="mCompareDivider" style="position:absolute;top:0;bottom:0;width:3px;background:#f0a500;cursor:ew-resize;transform:translateX(-50%);">
+          <div style="position:absolute;top:50%;transform:translate(-50%,-50%);background:#f0a500;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;">↔️</div>
+        </div>
+        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;">BEFORE</div>
+        <div style="position:absolute;top:8px;right:8px;background:rgba(240,165,0,.85);color:#000;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:bold;">MERGED</div>
+      </div>
+    </div>
+    <canvas id="mCanvas" style="display:none;"></canvas>
+    <button class="btn btn-green" id="mSave" style="display:none;margin-top:10px;" onclick="saveMerge()">💾 บันทึกภาพ Merge</button>
+  </div>
+</div>
+<div id="pgN1" class="page">
+  <div class="card">
+    <div class="card-title">📸 วิเคราะห์คิ้ว → ทำนายกมอย + เจนภาพร่างกาย</div>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:12px;">อัปโหลดภาพคิ้ว/ใบหน้า 1–6 ภาพ จากอุปกรณ์, Google Drive หรือ Google Photos</p>
+ 
+    <div class="slot-grid" id="slotGrid">
+       </div>
+    
+    <div style="font-size:12px;color:#6e7681;text-align:center;margin-bottom:10px;" id="slotStatus">ยังไม่ได้เลือกภาพ — แตะกล่องเพื่อเลือก</div>
+
+    <button class="btn btn-gold" id="naBtn" onclick="analyzeNara()" disabled>🔍 วิเคราะห์คิ้วและทำนายกมอย</button>
+
+    <div class="loading" id="naLoad" style="display:none;">
+      <div class="spin">🔮</div>
+      <p style="margin-top:8px;font-size:13px;color:#f0a500;">AI กำลังวิเคราะห์คิ้วและทำนายกมอย...</p>
+    </div>
+
+  <div class="result" id="naResult" style="display:none;">
+      <div class="stars" id="nStars"></div>
+      <div class="res-title" id="nTitle"></div>
+      <div class="block b-gold"><div class="blbl blbl-gold">🔬 ลักษณะคิ้วที่วิเคราะห์ได้</div><div id="nEyebrow"></div></div>
+      <div class="block b-red"><div class="blbl blbl-red">🔭 ทำนายลักษณะกมอยจากคิ้ว</div><div id="nPredict"></div></div>
+      <div class="block b-green"><div class="blbl blbl-green">📖 ตำรานรลักษณ์ว่าไว้</div><div id="nTrad"></div></div>
+      <div class="block b-purple"><div class="blbl blbl-purple">⭐ ดวงชะตาจากกมอย</div><div id="nFortune"></div></div>
+      <div id="naraDBMatches" style="margin-top:8px;"></div>
+      <!-- Portrait Generation -->
+      <button class="btn btn-purple" style="margin-top:12px;" onclick="genPortraitComposites()">🎨 เจนภาพ (1440×3240)</button>
+      <div id="portraitGenWrap" style="margin-top:12px;display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="bodyCard" class="page" style="display:none;padding:16px;max-width:660px;margin:auto;">
+  <div class="card">
+    <div class="card-title" id="bodyCardTitle">
+        <button class="sub-btn" onclick="showPage('pgG1')" style="display: none;">🎨 เจนภาพกมอยบนร่างกาย</button>
+        
+        </div>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:14px;">อัปโหลดภาพร่างกาย — AI จะตรวจจับตำแหน่งร่างกายแล้วนำ <b style="color:#f0a500;">ภาพจากตำรา</b>ที่ตรงกับคำทำนายมาวางทับ ถ้าไม่มีร่างกายจะสร้าง collage จากตำรา ระดับ: <span id="bodyLevelBadge" style="color:#f0a500;font-weight:bold;">-</span></p>
+
+    <!-- Upload zone -->
+    <div style="position:relative;background:#0d1117;border:2px dashed #1f6feb;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;margin-bottom:6px;" onclick="document.getElementById('bodyFile').click()">
+      <input type="file" id="bodyFile" accept="image/*" style="display:none;" onchange="onBodyFile(this)">
+      <div style="font-size:32px;margin-bottom:6px;">🧍</div>
+      <div id="bodyTxt" style="font-size:13px;color:#6e7681;">แตะเพื่อเลือกภาพร่างกาย<br><small style="color:#4a5568;font-size:11px;">รองรับทุกประเภทภาพ • ยิ่งภาพชัด ยิ่งแม่น</small></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="openGPhotosModal('body')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;"><span style="color:#4285F4;">🖼️</span> Google Photos</button>
+      <button onclick="openGDriveModal(null,'body')" style="flex:1;padding:8px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:12px;">📂 Google Drive</button>
+    </div>
+
+    <img id="bodyPrev" style="width:100%;border-radius:10px;margin-bottom:10px;display:none;max-height:320px;object-fit:contain;border:1px solid #21262d;">
+
+    <!-- GDrive link -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+      <input type="text" id="bodyGDrive" placeholder="หรือวาง Google Drive Link..." style="flex:1;padding:9px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:12px;">
+      <button class="btn btn-sm" style="background:#1f6feb;color:#fff;width:auto;padding:9px 14px;margin:0;border-radius:8px;border:none;cursor:pointer;font-size:12px;" onclick="loadBodyGDrive()">โหลด</button>
+    </div>
+
+    <!-- Level picker (ถ้ายังไม่ได้วิเคราะห์) -->
+    <div id="bodyLevelPicker" style="display:none;margin-bottom:12px;">
+      <div style="font-size:12px;color:#8b949e;margin-bottom:6px;">⚙️ เลือกระดับกมอยด้วยตนเอง (ยังไม่ได้วิเคราะห์จากภาพ)</div>
+      <div class="q-row">
+        <button class="q-btn" onclick="setBodyLevel(1,this)">Lv.1<br><span style="font-size:10px;">บางมาก</span></button>
+        <button class="q-btn" onclick="setBodyLevel(2,this)">Lv.2<br><span style="font-size:10px;">บาง</span></button>
+        <button class="q-btn active" onclick="setBodyLevel(3,this)">Lv.3<br><span style="font-size:10px;">ปานกลาง</span></button>
+        <button class="q-btn" onclick="setBodyLevel(4,this)">Lv.4<br><span style="font-size:10px;">ดก</span></button>
+        <button class="q-btn" onclick="setBodyLevel(5,this)">Lv.5<br><span style="font-size:10px;">ดกดำ</span></button>
+      </div>
+    </div>
+
+    <button class="btn btn-green" id="genBodyBtn" onclick="genBodyOverlay()" disabled>✨ เจนกมอยบนร่างกาย</button>
+
+    <div class="prog-wrap" id="bodyProg" style="margin-top:10px;">
+      <div style="font-size:12px;color:#f0a500;text-align:center;margin-bottom:4px;" id="bodyProgTxt">⏳ กำลังประมวลผล...</div>
+      <div class="prog-bg"><div class="prog-fill" id="bodyFill" style="width:0%;"></div></div>
+    </div>
+
+    <div id="bodyResult" style="display:none;margin-top:14px;">
+      <div class="blbl blbl-blue" style="margin-bottom:8px;font-size:12px;">🖼️ ภาพกมอยจำลองตามสรีระ — เลื่อนดูก่อน/หลัง</div>
+      <!-- Before/After slider -->
+      <div id="bodyCompareBox" style="position:relative;overflow:hidden;border-radius:10px;border:1px solid #30363d;cursor:ew-resize;user-select:none;">
+        <canvas id="bodyCanvas" style="display:block;width:100%;"></canvas>
+        <div id="bodyOverlay" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+          <canvas id="bodyCanvasBefore" style="display:block;width:100%;position:absolute;top:0;left:0;"></canvas>
+        </div>
+        <div id="bodyDivider" style="position:absolute;top:0;bottom:0;width:3px;background:#f0a500;cursor:ew-resize;transform:translateX(-50%);pointer-events:none;">
+          <div style="position:absolute;top:50%;transform:translate(-50%,-50%);background:#f0a500;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;pointer-events:none;">↔️</div>
+        </div>
+        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;pointer-events:none;">ต้นฉบับ</div>
+        <div style="position:absolute;top:8px;right:8px;background:rgba(240,165,0,.85);color:#000;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:bold;pointer-events:none;">กมอย</div>
+      </div>
+      <button class="btn btn-purple" onclick="saveBodyCanvas()" style="margin-top:10px;">💾 บันทึกภาพ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NARA DATE ══ -->
+<div id="pgN2" class="page">
+  <div class="card">
+    <div class="card-title" id="dTitleBar">📅 ทำนายกมอยจากวันเวลาเกิด</div>
+    <div class="fg" style="margin-bottom:12px;">
+      <label>📅 วันเกิด</label>
+      <input type="date" id="bDate">
+    </div>
+    <div class="form-row">
+      <div class="fg">
+        <label>🕐 ชั่วโมงเกิด</label>
+        <select id="bHour">
+          <option value="">ไม่ทราบ</option>
+          <option value="0">00:00 ยามชวด</option><option value="1">01:00 ยามฉลู</option>
+          <option value="2">02:00 ยามขาล</option><option value="3">03:00 ยามเถาะ</option>
+          <option value="4">04:00 ยามมะโรง</option><option value="5">05:00 ยามมะเส็ง</option>
+          <option value="6">06:00 ยามมะเมีย</option><option value="7">07:00 ยามมะแม</option>
+          <option value="8">08:00 ยามวอก</option><option value="9">09:00 ยามระกา</option>
+          <option value="10">10:00 ยามจร</option><option value="11">11:00 ยามกุน</option>
+          <option value="12">12:00 ยามชวด(บ่าย)</option><option value="13">13:00 ยามฉลู(บ่าย)</option>
+          <option value="14">14:00 ยามขาล(บ่าย)</option><option value="15">15:00 ยามเถาะ(บ่าย)</option>
+          <option value="16">16:00 ยามมะโรง(บ่าย)</option><option value="17">17:00 ยามมะเส็ง(บ่าย)</option>
+          <option value="18">18:00 ยามมะเมีย(เย็น)</option><option value="19">19:00 ยามมะแม(เย็น)</option>
+          <option value="20">20:00 ยามวอก(ดึก)</option><option value="21">21:00 ยามระกา(ดึก)</option>
+          <option value="22">22:00 ยามจร(ดึก)</option><option value="23">23:00 ยามกุน(ดึก)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>👤 เพศ</label>
+        <select id="bGender" onchange="onGenderChange(this.value)">
+          <option value="หญิง">หญิง</option>
+          <option value="ชาย">ชาย</option>
+          <option value="ไม่ระบุ">ไม่ระบุ</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-gold" id="dPredictBtn" onclick="predictDate()">🔮 ทำนายกมอยจากดวงชะตา</button>
+    <div class="loading" id="dLoad"><div class="spin">🌙</div><p style="margin-top:8px;font-size:13px;color:#f0a500;">กำลังคำนวณดวงชะตา...</p></div>
+    <div class="result" id="dResult">
+      <div class="stars" id="dStars"></div>
+      <div class="res-title" id="dTitle"></div>
+      <div class="block b-gold"><div class="blbl blbl-gold">🌙 ฤกษ์ยาม &amp; นักษัตร</div><div id="dAstro"></div></div>
+      <div class="block b-red"><div class="blbl blbl-red" id="dHairLabel">🔬 ลักษณะกมอยที่ดวงบ่งบอก</div><div id="dHair"></div></div>
+      <div class="block b-purple"><div class="blbl blbl-purple">⭐ คำทำนาย</div><div id="dFortune"></div></div>
+        <div id="dateDBMatches" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    /* legacy getInitialDB removed — ใช้ฟังก์ชันด้านล่างแทน (โหลดจาก data_based.json) */
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+var SLOTS      = 6;
+var slotB64    = new Array(SLOTS).fill(null);
+var slotThumb  = new Array(SLOTS).fill(null);
+var bodyB64    = null;
+var bodyImg    = null;
+var naraLevel  = 0;
+var naraTitle  = '';
+var naraRegions= [];
+var naraLastKeywords = [];
+var enchantB64 = null;
+var enchantScale = 2;
+var activeSlotForGDrive = -1;
+
+/* ═══════════════════════════════════
+   JSON IMAGE DATABASE
+   ดึงภาพ hee 0.jpg - hee 30.jpg จากโฟลเดอร์
+═══════════════════════════════════ */
+var IMAGE_DB_KEY = 'naralak_image_db';
+/* path ตรงกับ base_path ใน data_based.json (ปรับให้ตรงกับที่วางไฟล์จริงบน server) */
+var FOLDER_NAME   = "JSON Image Database/pictures/hee/";
+
+/* ── keywords ต่อระดับ (ใช้จาก NORALAK_DB ถ้ามี ไม่งั้น fallback นี้) ── */
+var HEE_KEYWORDS = {
+  1: ['บาง','เส้นเล็ก','ระเบียบ','น้อย','ละเอียดอ่อน','สีอ่อน','เบาบาง','เจ้าสำอาง','นุ่มนวล','ประภัสสร','น้อยนิด','บางเบา'],
+  2: ['กระจาย','สีอ่อน','ประปราย','เรียงระเบียบ','ตรง','สม่ำเสมอ','อ่อน','ไม่หนา','ธรรมชาติ','สะอาดตา','เบา','ประปราย'],
+  3: ['สมดุล','หนา','สีเข้ม','ดำ','แข็งแรง','เรียงตัว','กลาง','ดกพอประมาณ','มีทิศทาง','มาตรฐาน','พอดี','พอเหมาะ'],
+  4: ['ดก','หนาแน่น','เส้นใหญ่','แข็ง','เข้มดำ','ยาว','ฟู','พุ่ม','บารมี','อุดมสมบูรณ์','พลังล้นเหลือ','เร่าร้อน'],
+  5: ['ดกดำ','ฟูมาก','หนามาก','ราตรีกาล','มหาเสน่ห์','ดำเงา','ยาวมาก','หยิก','หนาแน่นมาก','ปกคลุม','ป่าดงดิบ','รกชัฏ']
+};
+
+/* ── ดึง db_keywords จาก NORALAK_DB (noralak_engine.js) ถ้ามี ── */
+function _getEngineKW(lv){
+  if(typeof NORALAK_DB!=='undefined' && NORALAK_DB['level'+lv])
+    return NORALAK_DB['level'+lv].db_keywords||[];
+  return [];
+}
+function _getEngineData(lv){
+  if(typeof NORALAK_DB!=='undefined' && NORALAK_DB['level'+lv])
+    return NORALAK_DB['level'+lv];
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════
+   getInitialDB — อ่านจาก data_based.json (async ครั้งแรก)
+   ถ้ายังไม่ได้โหลด JSON → สร้างจาก total=31 ก่อน (id 0-30)
+══════════════════════════════════════════════════════ */
+var _jsonImages = null; /* cache จาก data_based.json */
+
+/* แปลง id → level (31 ภาพ id 0-30 / 5 ระดับ)
+   lv1: 00-05 (6 ภาพ)
+   lv2: 06-11 (6 ภาพ)
+   lv3: 12-18 (7 ภาพ)
+   lv4: 19-24 (6 ภาพ)
+   lv5: 25-30 (6 ภาพ) */
+function _idToLevel(id){
+  if(id<=5)  return 1;
+  if(id<=11) return 2;
+  if(id<=18) return 3;
+  if(id<=24) return 4;
+  return 5;
+}
+
+/* subScore 0-5 ภายใน level */
+function _idToSubScore(id, lv){
+  var ranges={1:[0,5],2:[6,11],3:[12,18],4:[19,24],5:[25,30]};
+  var r=ranges[lv]; var span=r[1]-r[0];
+  return span>0 ? Math.round((id-r[0])/span*5) : 0;
+}
+
+var HEE_TITLES = {
+  1:['บางดุจปุยนุ่น','ละเอียดดั่งเส้นไหม','เนียนนวลดั่งหมอก','บางเบาดั่งปุยเมฆ','สะอาดดั่งผ้าขาว','อ่อนโยนดั่งฝ้าย'],
+  2:['ประปรายเรียงระเบียบ','ลำดับดั่งนางเรียง','น้อยแต่มีเสน่ห์','ระเบียบดั่งแถว','กระจายสวยงาม','สม่ำเสมอดั่งระนาด'],
+  3:['สมดุลพุ่มพฤกษา','งามพอเหมาะพอดี','แข็งแกร่งสมส่วน','สมดุลดั่งตาชั่ง','กลมกลืนพอดี','มั่นคงดั่งแผ่นดิน','สมส่วนดั่งดาราศาสตร์'],
+  4:['หนาแน่นทรงพลัง','เข้มแข็งดั่งป่าใหญ่','บารมีดั่งราชสีห์','พลังดั่งพายุ','ดกดั่งป่าทึบ','อำนาจดั่งราชา'],
+  5:['ดกดำราตรีกาล','มหาเสน่ห์แห่งราตรี','ดำดั่งอวกาศ','ฟูดั่งป่าดงดิบ','มืดดั่งคืนเดือนดับ','ราตรีกาลมหาเสน่ห์']
+};
+
+function _buildEntry(id, fname){
+  var lv  = _idToLevel(id);
+  var sub = _idToSubScore(id, lv);
+  var titles = HEE_TITLES[lv]||[];
+  /* รวม keyword จาก HEE_KEYWORDS + engine */
+  var kw = (HEE_KEYWORDS[lv]||[]).concat(_getEngineKW(lv));
+  kw = kw.filter(function(k,i,a){ return a.indexOf(k)===i; });
+  /* title index ภายใน level — offset = id แรกของ level นั้น */
+  var lvStart = [0, 0, 6, 12, 19, 25];
+  return {
+    id:       1000+id,
+    level:    lv,
+    subScore: sub,
+    title:    titles[id - lvStart[lv]] || titles[sub] || ('ระดับ'+lv),
+    desc:     fname||('hee '+(id<10?'0':'')+id+'.jpg'),
+    keywords: kw,
+    thumb:    FOLDER_NAME+(fname||('hee '+(id<10?'0':'')+id+'.jpg')),
+    ts:       '2026'
+  };
+}
+
+function getInitialDB(){
+  /* ถ้าโหลด JSON แล้ว → ใช้ข้อมูลจริง */
+  if(_jsonImages && _jsonImages.length){
+    return _jsonImages.map(function(img){ return _buildEntry(img.id, img.file_name); });
+  }
+  /* ยังไม่ได้โหลด → สร้างจากตัวเลข 0-30 ก่อน (async load จะ refresh ทีหลัง) */
+  var db=[];
+  for(var i=0;i<=30;i++) db.push(_buildEntry(i, null));
+  return db;
+}
+
+/* โหลด data_based.json → rebuild DB → refresh UI */
+function loadDataBasedJson(){
+  fetch('data_based.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data||!data.images||!data.images.length) return;
+      _jsonImages = data.images; /* cache — มี 31 ภาพ id 0-30 */
+      /* ล้าง localStorage cache เพื่อ rebuild ใหม่จาก JSON */
+      try{ localStorage.removeItem(IMAGE_DB_KEY); }catch(e){}
+      /* ถ้ามีผลวิเคราะห์แสดงอยู่ → refresh ภาพที่แสดง */
+      if(naraLevel>0) renderDBMatchesByAIKeywords(_getEngineKW(naraLevel).concat(HEE_KEYWORDS[naraLevel]||[]), naraLevel, 'naraDBMatches');
+    })
+    .catch(function(){ /* ไม่มีไฟล์ก็ใช้ default fallback */ });
+}
+
+function loadDB(){
+  try{
+    var localData = localStorage.getItem(IMAGE_DB_KEY);
+    var db = localData ? JSON.parse(localData) : [];
+    var initialDB = getInitialDB();
+    var combined = initialDB.slice();
+    db.forEach(function(item){
+      if(!combined.some(function(c){ return c.id===item.id; })){
+        combined.push(item);
+      }
+    });
+    return combined;
+  }catch(e){ return getInitialDB(); }
+}
+/* เรียกโหลด JSON ทันทีตอน startup */
+window.addEventListener('DOMContentLoaded', function(){ loadDataBasedJson(); });
+
+
+function saveDB(db){ localStorage.setItem(IMAGE_DB_KEY, JSON.stringify(db)); }
+
+/* ค้นหาภาพที่ใกล้เคียง level มากที่สุด */
+function queryDB(level, limit){
+  limit = limit||3;
+  var db = loadDB();
+  if(!db.length) return [];
+  var scored = db.map(function(item){
+    return { item:item, score: Math.abs(item.level - level) };
+  });
+  scored.sort(function(a,b){ return a.score-b.score; });
+  return scored.slice(0,limit).map(function(s){ return s.item; });
+}
+
+/* เพิ่มภาพลงฐานข้อมูล */
+function addToDB(level, title, desc, dataUrl){
+  var db = loadDB();
+  var id = Date.now();
+  db.push({ id:id, level:level, title:title, desc:desc, thumb:dataUrl, keywords:[], ts:new Date().toLocaleDateString('th') });
+  if(db.length > 100) db = db.slice(-100);
+  saveDB(db);
+  return id;
+}
+
+function removeFromDB(id){
+  var db = loadDB().filter(function(x){ return x.id!==id; });
+  saveDB(db);
+}
+
+/* แสดงภาพที่ match จาก DB (by level fallback) */
+function renderDBMatches(level, containerId){
+  var matches = queryDB(level, 4);
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  if(!matches.length){
+    el.innerHTML = '<div style="font-size:12px;color:#6e7681;text-align:center;padding:10px;">ยังไม่มีภาพในคลัง — เพิ่มภาพโดยกดปุ่ม "💾 บันทึกลงคลัง" หลังวิเคราะห์</div>';
+    return;
+  }
+  var html = '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">';
+  matches.forEach(function(item){
+    var badge = item.level === level ? '#3fb950' : '#8b949e';
+    html += '<div style="position:relative;border-radius:8px;overflow:hidden;border:2px solid '+(item.level===level?'#f0a500':'#30363d')+';">'
+      + '<img src="'+item.thumb+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">'
+      + '<div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.7);color:'+badge+';font-size:10px;font-weight:bold;padding:2px 6px;border-radius:8px;">Lv.'+item.level+'</div>'
+      + '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);padding:4px 6px;font-size:10px;color:#e6edf3;">'+item.title+'</div>'
+      + '<button onclick="removeFromDB('+item.id+');renderDBMatches('+level+',\''+containerId+'\')" style="position:absolute;top:4px;right:4px;background:rgba(200,0,0,.7);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;padding:0;">✕</button>'
+      + '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+/* บันทึกภาพที่อัปโหลดลงคลัง */
+function saveUploadToDB(level, title){
+  var imgs = slotB64.filter(function(d){return d!==null;});
+  if(!imgs.length){ alert('ไม่มีภาพในช่อง — กรุณาเลือกภาพก่อน'); return; }
+  var count = 0;
+  imgs.forEach(function(b64){
+    if(b64 && !b64.startsWith('GDRIVE_URL:')){
+      addToDB(level, title, '', 'data:image/jpeg;base64,'+b64);
+      count++;
+    }
+  });
+  alert('✅ บันทึก '+count+' ภาพลงคลังแล้ว (ระดับ '+level+'/5)');
+  renderDBMatches(level, 'naraDBMatches');
+}
+
+/* ═══════════════════════════════════
+   NAV
+═══════════════════════════════════ */
+/* ── master hide all pages ── */
+function hideAll(){
+  ['pgE','pgMerge','pgN1','pgN2'].forEach(function(id){
+    document.getElementById(id).classList.remove('show');
+  });
+  ['subNavE','subNav'].forEach(function(id){
+    document.getElementById(id).classList.remove('show');
+  });
+  ['tnE','tnN'].forEach(function(id){
+    document.getElementById(id).classList.remove('active');
+  });
+  var bCard = document.getElementById('bodyCard');
+  if(bCard) bCard.style.display='none';
+}
+function topTab(t){
+  hideAll();
+  if(t==='E'){
+    document.getElementById('tnE').classList.add('active');
+    document.getElementById('subNavE').classList.add('show');
+    enchantTab('enhance');
+  } else {
+    document.getElementById('tnN').classList.add('active');
+    document.getElementById('subNav').classList.add('show');
+    subTab(1);
+  }
+}
+function enchantTab(t){
+  document.getElementById('pgE').classList.remove('show');
+  document.getElementById('pgMerge').classList.remove('show');
+  document.getElementById('seE').classList.remove('active');
+  document.getElementById('seM').classList.remove('active');
+  var bCard = document.getElementById('bodyCard');
+  if(bCard) bCard.style.display='none';
+  if(t==='enhance'){
+    document.getElementById('pgE').classList.add('show');
+    document.getElementById('seE').classList.add('active');
+  } else {
+    document.getElementById('pgMerge').classList.add('show');
+    document.getElementById('seM').classList.add('active');
+  }
+}
+function subTab(n){
+  document.getElementById('pgN1').classList.remove('show');
+  document.getElementById('pgN2').classList.remove('show');
+  document.getElementById('sb1').classList.remove('active');
+  document.getElementById('sb2').classList.remove('active');
+  if(n===1){
+    document.getElementById('pgN1').classList.add('show');
+    document.getElementById('sb1').classList.add('active');
+    // แสดง bodyCard เสมอในแท็บวิเคราะห์จากภาพ
+    var bCard = document.getElementById('bodyCard');
+    if(bCard){ bCard.style.display='block'; }
+    // ถ้ายังไม่ได้วิเคราะห์ แสดง level picker
+    var picker = document.getElementById('bodyLevelPicker');
+    if(picker && naraLevel===0) picker.style.display='block';
+    // badge
+    var badge = document.getElementById('bodyLevelBadge');
+    if(badge) badge.textContent = naraLevel>0 ? 'Lv.'+naraLevel+'/5 — '+naraTitle : 'ยังไม่ได้วิเคราะห์';
+    // ปุ่มเปิดได้เสมอ (ถ้าเลือกภาพแล้ว)
+    var gb = document.getElementById('genBodyBtn');
+    if(gb) gb.disabled = (bodyB64===null && bodyImg===null);
+  } else {
+    document.getElementById('pgN2').classList.add('show');
+    document.getElementById('sb2').classList.add('active');
+    var bCard = document.getElementById('bodyCard');
+    if(bCard) bCard.style.display='none';
+  }
+}
+/* ═══════════════════════════════════
+   BUILD SLOT GRID (สร้างกล่อง 6 ช่อง)
+═══════════════════════════════════ */
+var activeSlotForGPhotos = -1; 
+
+(function buildSlots(){
+  var grid = document.getElementById('slotGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  for(var i=0;i<SLOTS;i++){
+    var slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.id = 'slot'+i;
+    slot.dataset.idx = i;
+    
+    slot.innerHTML =
+      '<span class="s-icon">📷</span>'+
+      '<span class="s-lbl">ภาพที่'+(i+1)+'</span>'+
+      '<button class="s-del" onclick="delSlot(event,'+i+')">✕</button>';
+      
+    var inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*';
+    inp.style.display='none'; inp.id='sf'+i;
+    inp.dataset.idx=i;
+    inp.addEventListener('change',function(e){
+      var idx = parseInt(this.dataset.idx);
+      var f = this.files[0]; if(!f) return;
+      readFileToSlot(idx, f);
+    });
+    slot.appendChild(inp);
+    
+    slot.addEventListener('click',function(e){
+      if(e.target.classList.contains('s-del')) return;
+      e.stopPropagation();
+      openSlotPopup(parseInt(this.dataset.idx), e);
+    });
+    grid.appendChild(slot);
+  }
+})();
+
+// Legacy function — now replaced by openGPhotosModal
+function openGooglePickerForSlot(e, idx) {
+  if(e && e.stopPropagation) e.stopPropagation();
+  openGPhotosModal('slot', idx);
+}
+function pickerSlotCallback(data) {
+  // Legacy — no longer used
+}
+
+function triggerSlotFile(e,idx){
+  e.stopPropagation();
+  document.getElementById('slot'+idx).classList.remove('show-opts');
+  document.getElementById('sf'+idx).click();
+}
+
+function readFileToSlot(idx, file){
+  var fr = new FileReader();
+  fr.onload = function(ev){
+    setSlotImage(idx, ev.target.result);
+  };
+  fr.readAsDataURL(file);
+}
+
+function setSlotImage(idx, dataUrl){
+  slotB64[idx] = dataUrl.split(',')[1];
+  var slot = document.getElementById('slot'+idx);
+  slot.classList.add('filled');
+  slot.classList.remove('show-opts');
+  // remove old thumb
+  var old = slot.querySelector('img.thumb');
+  if(old) slot.removeChild(old);
+  var im = document.createElement('img'); im.className='thumb'; im.src=dataUrl;
+  slot.insertBefore(im, slot.firstChild);
+  updateSlotStatus();
+}
+
+function delSlot(e, idx){
+  e.stopPropagation();
+  slotB64[idx] = null;
+  var slot = document.getElementById('slot'+idx);
+  var old = slot.querySelector('img.thumb');
+  if(old) slot.removeChild(old);
+  slot.classList.remove('filled','show-opts');
+  document.getElementById('sf'+idx).value='';
+  updateSlotStatus();
+}
+
+function updateSlotStatus(){
+  var count = slotB64.filter(function(d){return d!==null;}).length;
+  document.getElementById('slotStatus').textContent = count>0
+    ? '✅ เลือก '+count+' ภาพแล้ว — กดปุ่มวิเคราะห์'
+    : 'ยังไม่ได้เลือกภาพ — แตะกล่องเพื่อเลือก';
+  document.getElementById('naBtn').disabled = count===0;
+}
+
+/* ═══════════════════════════════════
+   GOOGLE DRIVE MODAL
+═══════════════════════════════════ */
+function openGDriveModal(e, target){
+  if(e && e.stopPropagation) e.stopPropagation();
+  // target = slot index (number) | 'enchant' | 'merge-base' | 'merge-layer' | 'body'
+  activeSlotForGDrive = target;
+  document.getElementById('gdriveInput').value='';
+  document.getElementById('gdriveStatus').textContent='';
+  document.getElementById('gdriveModal').classList.add('show');
+  openDriveTab();
+}
+function openDriveTab(){
+  window.open('https://drive.google.com/drive/my-drive','_blank','noopener');
+  document.getElementById('gdriveStatus').textContent='⏳ รอคัดลอก Share Link จาก Drive แล้วมาวางด้านล่าง...';
+}
+function pasteFromClipboard(inputId){
+  inputId = inputId || 'gdriveInput';
+  if(navigator.clipboard && navigator.clipboard.readText){
+    navigator.clipboard.readText().then(function(txt){
+      document.getElementById(inputId).value = txt;
+      document.getElementById(inputId === 'gphotosInput' ? 'gphotosStatus' : 'gdriveStatus').textContent='📋 วางแล้ว — กด "โหลดภาพ"';
+    }).catch(function(){
+      document.getElementById(inputId).focus();
+      document.getElementById(inputId === 'gphotosInput' ? 'gphotosStatus' : 'gdriveStatus').textContent='⚠️ กด Ctrl+V / ⌘V เพื่อวาง';
+    });
+  } else {
+    document.getElementById(inputId).focus();
+    document.getElementById(inputId === 'gphotosInput' ? 'gphotosStatus' : 'gdriveStatus').textContent='⚠️ กด Ctrl+V / ⌘V เพื่อวาง';
+  }
+}
+function closeGDrive(){
+  document.getElementById('gdriveModal').classList.remove('show');
+  activeSlotForGDrive = -1;
+}
+function extractGDriveId(url){
+  var m = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+  if(m) return m[1];
+  m = url.match(/id=([a-zA-Z0-9_-]{20,})/);
+  if(m) return m[1];
+  return null;
+}
+function loadGDrive(){
+  var url = document.getElementById('gdriveInput').value.trim();
+  var fileId = extractGDriveId(url);
+  if(!fileId){ document.getElementById('gdriveStatus').textContent='⚠️ ไม่พบ File ID กรุณาตรวจสอบ Link'; return; }
+  document.getElementById('gdriveStatus').textContent='⏳ กำลังโหลด...';
+  var imgUrl = 'https://lh3.googleusercontent.com/d/'+fileId+'=s1000';
+  var im = new Image(); im.crossOrigin='anonymous';
+  im.onload = function(){
+    try {
+      var c = document.createElement('canvas'); c.width=im.width; c.height=im.height;
+      c.getContext('2d').drawImage(im,0,0);
+      var dataUrl = c.toDataURL('image/jpeg',0.9);
+      routeImageToTarget(activeSlotForGDrive, dataUrl);
+      document.getElementById('gdriveStatus').textContent='✅ โหลดสำเร็จ';
+      setTimeout(closeGDrive, 600);
+    } catch(e) {
+      routeImageUrlToTarget(activeSlotForGDrive, imgUrl);
+      document.getElementById('gdriveStatus').textContent='✅ โหลดผ่าน URL แล้ว';
+      setTimeout(closeGDrive, 600);
+    }
+  };
+  im.onerror = function(){
+    document.getElementById('gdriveStatus').textContent='❌ โหลดไม่ได้ — ตรวจสอบว่าภาพ Share เป็น Public';
+  };
+  im.src = imgUrl;
+}
+
+/* ═══════════════════════════════════
+   ANALYZE NARA
+═══════════════════════════════════ */
+// ฟังก์ชันทำนายจากภาพคิ้ว (ออฟไลน์)
+function analyzeNara(){
+  var imgs = slotB64.filter(function(d){return d!==null;});
+  if(imgs.length===0){ alert('กรุณาเลือกภาพอย่างน้อย 1 ภาพ'); return; }
+
+  
+  // โชว์หลอดกำลังโหลด
+  document.getElementById('naLoad').style.display='block';
+  document.getElementById('naResult').style.display='none';
+ // ใช้ setTimeout จำลองการคิดของ AI 1.5 วินาที เพื่อให้ผู้ใช้รู้สึกสมจริง
+  setTimeout(function() {
+    try{
+      var localResult = analyzeImageLocally(imgs);
+      document.getElementById('naLoad').style.display='none';
+      showNaraResult(localResult);
+    }catch(e){
+      document.getElementById('naLoad').style.display='none';
+      console.error('analyzeNara error:',e);
+      // fallback
+      var lv=3; var fb=buildFallback(lv);
+      showNaraResult({level:lv,stars:fb.stars,title:fb.title,eyebrow:fb.eyebrow,
+        predict:fb.predict,tradition:fb.tradition,fortune:fb.fortune,
+        body_regions:fb.body_regions,db_keywords:HEE_KEYWORDS[lv]});
+    }
+  }, 1500); 
+}
+
+function quickLevel(imgs){
+  var scores=[];
+  imgs.forEach(function(b64){
+    if(b64.startsWith('GDRIVE_URL:')){ scores.push(3); return; }
+    try{
+      var c=document.createElement('canvas'),cx2=c.getContext('2d'),im=new Image();
+      im.src='data:image/jpeg;base64,'+b64;
+      c.width=60;c.height=60;cx2.drawImage(im,0,0,60,60);
+      var px=cx2.getImageData(0,0,60,60).data,dark=0;
+      for(var i=0;i<px.length;i+=4) if((px[i]+px[i+1]+px[i+2])/3<110) dark++;
+      var r=dark/3600;
+      scores.push(r<0.08?1:r<0.20?2:r<0.36?3:r<0.54?4:5);
+    }catch(e){scores.push(3);}
+  });
+  return Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length)||3;
+}
+
+var fbData=[
+  {level:1,stars:2,title:"บางละเอียดดั่งเส้นไหม",eyebrow:"คิ้วเส้นเล็กละเอียด สีอ่อน บางเบา เรียงตัวเป็นระเบียบ ไม่มีเส้นฟุ้งออกมา",predict:"กมอยทั่วร่างน่าจะเบาบางนุ่มนวล เส้นขนละเอียดเรียว สีอ่อน ขึ้นน้อย",tradition:"ผู้มีกมอยบางเบาเป็นคนเจ้าสำอาง ละเอียดอ่อน มีจริตงดงาม มักเป็นที่รักผู้ใหญ่",fortune:"ดวงชะตาราบรื่น มีผู้อุปถัมภ์เสมอ ชีวิตรักมักสมหวัง เสน่ห์อยู่ที่ความนุ่มนวล",body_regions:[{name:"หน้าอก",cx:50,cy:38,rx:15,ry:10,angle:90,density:0.2},{name:"ท้อง",cx:50,cy:52,rx:10,ry:7,angle:90,density:0.15},{name:"แขนซ้าย",cx:22,cy:45,rx:5,ry:13,angle:82,density:0.1},{name:"แขนขวา",cx:78,cy:45,rx:5,ry:13,angle:98,density:0.1},{name:"ขาซ้าย",cx:38,cy:73,rx:6,ry:16,angle:90,density:0.15},{name:"ขาขวา",cx:62,cy:73,rx:6,ry:16,angle:90,density:0.15}]},
+  {level:2,stars:3,title:"ประปรายเรียงระเบียบ",eyebrow:"คิ้วมีความหนาปานกลาง เส้นเรียงมีทิศทาง สีเข้มพอสมควร",predict:"กมอยเรียงระเบียบ ขนมีทิศทางชัดเจน ปริมาณปานกลาง",tradition:"ผู้มีกมอยเรียงระเบียบเป็นคนมีเหตุผล ซื่อสัตย์ รับผิดชอบสูง",fortune:"การงานมั่นคง มีคู่ครองที่ดี การเงินไม่ขาดมือ",body_regions:[{name:"หน้าอก",cx:50,cy:38,rx:16,ry:11,angle:90,density:0.35},{name:"ท้อง",cx:50,cy:52,rx:11,ry:7,angle:90,density:0.25},{name:"แขนซ้าย",cx:22,cy:45,rx:5,ry:14,angle:82,density:0.2},{name:"แขนขวา",cx:78,cy:45,rx:5,ry:14,angle:98,density:0.2},{name:"ขาซ้าย",cx:38,cy:73,rx:6,ry:17,angle:90,density:0.3},{name:"ขาขวา",cx:62,cy:73,rx:6,ry:17,angle:90,density:0.3}]},
+  {level:3,stars:4,title:"สมดุลพุ่มพฤกษา",eyebrow:"คิ้วดกดำพอประมาณ เส้นหนาสม่ำเสมอ สีเข้ม กระจายสมดุล",predict:"กมอยดกพอประมาณทั่วร่าง เส้นแข็งแรงสม่ำเสมอ สีเข้มดำ",tradition:"กมอยสมดุลบ่งชี้พลังชีวิตสูง สุขภาพแข็งแรง จิตใจมั่นคง",fortune:"ดวงโชคลาภดีเยี่ยม การเงินอุดมสมบูรณ์ ความรักสมหวัง",body_regions:[{name:"หน้าอก",cx:50,cy:37,rx:18,ry:12,angle:90,density:0.55},{name:"ท้อง",cx:50,cy:52,rx:12,ry:8,angle:90,density:0.45},{name:"แขนซ้าย",cx:21,cy:45,rx:6,ry:15,angle:80,density:0.35},{name:"แขนขวา",cx:79,cy:45,rx:6,ry:15,angle:100,density:0.35},{name:"ขาซ้าย",cx:37,cy:73,rx:7,ry:17,angle:90,density:0.45},{name:"ขาขวา",cx:63,cy:73,rx:7,ry:17,angle:90,density:0.45}]},
+  {level:4,stars:5,title:"หนาแน่นทรงพลัง",eyebrow:"คิ้วหนาดำเข้ม เส้นหนาแน่น ขอบชัดเจน ยาวได้สัดส่วน",predict:"กมอยหนาแน่น เส้นหนาแข็ง สีดำเข้ม ปกคลุมพื้นที่มาก",tradition:"ตำราว่ากมอยหนาแน่นบ่งชี้ความเป็นผู้นำ มีบารมี คนยำเกรง",fortune:"ดวงอำนาจวาสนาสูงมาก มักได้เป็นหัวหน้า เสน่ห์เป็นเลิศ",body_regions:[{name:"หน้าอก",cx:50,cy:36,rx:20,ry:13,angle:90,density:0.75},{name:"ท้อง",cx:50,cy:51,rx:13,ry:9,angle:90,density:0.65},{name:"แขนซ้าย",cx:20,cy:44,rx:7,ry:16,angle:78,density:0.55},{name:"แขนขวา",cx:80,cy:44,rx:7,ry:16,angle:102,density:0.55},{name:"ขาซ้าย",cx:36,cy:73,rx:8,ry:18,angle:90,density:0.6},{name:"ขาขวา",cx:64,cy:73,rx:8,ry:18,angle:90,density:0.6}]},
+  {level:5,stars:5,title:"ดกดำราตรีกาล",eyebrow:"คิ้วดกดำมาก เส้นยาวหนา สีดำเป็นมัน ปกคลุมหนาแน่น",predict:"กมอยดกดำหนาแน่นมากทั่วร่าง เส้นยาวสลวย สีดำเงา อาจหยิกงอ",tradition:"กมอยดกดำราตรีกาลเป็นสัญลักษณ์มหาเสน่ห์ พลังเมตตามหานิยมสูงสุด",fortune:"มหาเสน่ห์สูงยิ่ง ดึงดูดทุกสิ่ง โชคลาภพลิกผัน ชีวิตรักร้อนแรงสมปรารถนา",body_regions:[{name:"หน้าอก",cx:50,cy:35,rx:22,ry:14,angle:90,density:0.95},{name:"ท้อง",cx:50,cy:50,rx:15,ry:10,angle:90,density:0.85},{name:"แขนซ้าย",cx:19,cy:43,rx:8,ry:17,angle:76,density:0.75},{name:"แขนขวา",cx:81,cy:43,rx:8,ry:17,angle:104,density:0.75},{name:"ขาซ้าย",cx:35,cy:72,rx:9,ry:19,angle:90,density:0.8},{name:"ขาขวา",cx:65,cy:72,rx:9,ry:19,angle:90,density:0.8}]}
+];
+function buildFallback(lv){ return fbData[Math.min(5,Math.max(1,lv))-1]; }
+
+/* ═══ ENGINE BRIDGE ═══ */
+function analyzeImageLocally(imgs){
+  var lv = quickLevel(imgs);
+  var d  = _getEngineData(lv) || buildFallback(lv);
+  var kw = (_getEngineKW(lv)).concat(HEE_KEYWORDS[lv]||[]).filter(function(k,i,a){return a.indexOf(k)===i;});
+  return{level:lv, stars:d.stars||lv, title:d.title,
+    eyebrow:d.eyebrow, predict:d.predict, tradition:d.tradition, fortune:d.fortune,
+    body_regions:d.body_regions||buildFallback(lv).body_regions, db_keywords:kw};
+}
+
+function predictDateLocally(dateVal,hourVal,gender){
+  var d=new Date(dateVal);
+  var dayW=isNaN(d.getTime())?3:d.getDay(), month=isNaN(d.getTime())?6:d.getMonth()+1;
+  var year=isNaN(d.getTime())?2000:d.getFullYear();
+  var hour=(hourVal!==''&&hourVal!==null&&hourVal!==undefined)?parseInt(hourVal)||0:-1;
+  var base=(dayW*3+month*7+Math.floor(year%100/10)*11+(hour>=0?Math.floor(hour/5):2)*5)%30;
+  var lv=Math.min(5,Math.max(1,Math.floor(base/6)+1));
+  var isMale=(gender==='ชาย');
+  var nd=_getEngineData(lv)||buildFallback(lv);
+  var kw=(_getEngineKW(lv)).concat(HEE_KEYWORDS[lv]||[]).filter(function(k,i,a){return a.indexOf(k)===i;});
+  var YAAM=['ชวด','ฉลู','ขาล','เถาะ','มะโรง','มะเส็ง','มะเมีย','มะแม','วอก','ระกา','จร','กุน'];
+  var NAKSAT=['ชวด','ฉลู','ขาล','เถาะ','มะโรง','มะเส็ง','มะเมีย','มะแม','วอก','ระกา','จร','กุน'];
+  var yaamName=hour>=0?'ยาม'+YAAM[hour%12]:'ไม่ระบุยาม';
+  var nakName=NAKSAT[((year-4)%12+1200)%12];
+  return{level:lv, stars:nd.stars||lv, title:nd.title,
+    astro:(nd.date_astro||'')+'ปีนักษัตร'+nakName+' '+yaamName,
+    hair:nd.date_hair||nd.predict, fortune:nd.date_fortune||nd.fortune,
+    _isMale:isMale, db_keywords:kw};
+}
+
+/* ═══ HEE CANVAS PLACEHOLDER — ภาพจำลองเมื่อไฟล์ hee ไม่มี ═══ */
+var _heePlaceholderCache={};
+function generateHeeCanvas(level,title){
+  var key='lv'+level;
+  if(_heePlaceholderCache[key]) return _heePlaceholderCache[key];
+  var W=600,H=600,cvs=document.createElement('canvas');
+  cvs.width=W; cvs.height=H;
+  var ctx=cvs.getContext('2d');
+  var skins=[['#c8956a','#a0724d'],['#b8845a','#8f6038'],['#a07040','#7a5228'],['#8a5e30','#634420'],['#6a4420','#4a2e10']];
+  var sk=skins[Math.min(4,Math.max(0,level-1))];
+  var bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,sk[0]); bg.addColorStop(1,sk[1]);
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  var density=[25,55,110,190,320][level-1];
+  var hairLen=[16,22,30,38,50][level-1];
+  var lw=[0.5,0.7,1.1,1.5,2.1][level-1];
+  var cols=['rgba(100,70,30,','rgba(60,38,12,','rgba(35,20,5,','rgba(15,8,1,','rgba(4,2,0,'];
+  var col=cols[Math.min(4,level-1)];
+  for(var i=0;i<density*(W*H/90000);i++){
+    var px=Math.random()*W,py=Math.random()*H;
+    var len=hairLen*(0.6+Math.random()*0.8);
+    var al=0.45+Math.random()*0.5;
+    ctx.beginPath(); ctx.strokeStyle=col+al+')';
+    ctx.lineWidth=lw*(0.4+Math.random()*0.9); ctx.lineCap='round';
+    ctx.moveTo(px,py);
+    ctx.quadraticCurveTo(px+(Math.random()-0.5)*len*0.4,py+len*0.5,px+(Math.random()-0.5)*4,py+len);
+    ctx.stroke();
+  }
+  var dataUrl=cvs.toDataURL('image/jpeg',0.88);
+  _heePlaceholderCache[key]=dataUrl;
+  return dataUrl;
+}
+function makePlaceholderImg(level,title){
+  var im=new Image(); im.src=generateHeeCanvas(level||3,title||''); return im;
+}
+function heeImgFail(imgEl, level){
+  imgEl.onerror=null;
+  imgEl.src=generateHeeCanvas(level||3,'');
+}
+
+function showNaraResult(j){
+  naraLevel  = Math.min(5,Math.max(1,j.level||3));
+  naraTitle  = j.title||'';
+  naraRegions= j.body_regions||buildFallback(naraLevel).body_regions;
+  document.getElementById('nStars').innerHTML = '★'.repeat(j.stars||naraLevel)+'☆'.repeat(5-(j.stars||naraLevel));
+  document.getElementById('nTitle').textContent = naraTitle;
+  document.getElementById('nEyebrow').textContent = j.eyebrow||'';
+  document.getElementById('nPredict').textContent = j.predict||'';
+  document.getElementById('nTrad').textContent = j.tradition||'';
+  document.getElementById('nFortune').textContent = j.fortune||'';
+  var r=document.getElementById('naResult');
+  r.style.display='block';
+  document.getElementById('bodyResult').style.display='none';
+  // แสดง body card + อัพเดต level badge
+  var bCard = document.getElementById('bodyCard');
+  if(bCard) bCard.style.display='block';
+  var badge = document.getElementById('bodyLevelBadge');
+  if(badge) badge.textContent = 'Lv.'+naraLevel+'/5 — '+naraTitle;
+  var picker = document.getElementById('bodyLevelPicker');
+  if(picker) picker.style.display='none'; // ซ่อน picker เพราะมี level จริงแล้ว
+  document.getElementById('genBodyBtn').disabled = false;
+  // ใช้ db_keywords จาก AI ถ้ามี
+  if(j.db_keywords && j.db_keywords.length){
+    renderDBMatchesByAIKeywords(j.db_keywords, naraLevel, 'naraDBMatches');
+  } else {
+    renderDBMatchesByKeywords(j, 'naraDBMatches');
+  }
+  setTimeout(function(){r.scrollIntoView({behavior:'smooth'});},100);
+}
+
+/* ═══════════════════════════════════
+   SINGLE BEST IMAGE SELECTOR
+   เลือกภาพ 1 ใบที่ตรงที่สุดจาก 30 ภาพ
+   Algorithm:
+   1. กรองเฉพาะ level ที่ตรง (strict)
+   2. ใน level เดียวกัน ใช้ keywords + subScore
+   3. ถ้า level สูง/ต่ำ ให้เลือกภาพที่ extreme สุดในทิศทางนั้น
+═══════════════════════════════════ */
+
+/* keywords ที่บ่งบอกว่า "มากสุดในระดับ" */
+var EXTREME_HIGH_KW = ['ดกดำ','ดกดำมาก','ฟูมาก','หนามาก','ราตรีกาล','มหาเสน่ห์','ดกหนา','ทรงพลัง','ปกคลุม','ดำเงา','หยิก','ยาวมาก'];
+var EXTREME_LOW_KW  = ['บางละเอียด','เบาบางมาก','ประภัสสร','เส้นไหม','น้อยนิด','เบาบาง'];
+
+function pickBestSingleImage(level, aiKeywords){
+  var db = loadDB();
+  // กรองเฉพาะ level ที่ตรง
+  var same = db.filter(function(item){ return item.level === level; });
+  if(!same.length){
+    // fallback: ระดับใกล้สุด
+    var sorted = db.slice().sort(function(a,b){ return Math.abs(a.level-level)-Math.abs(b.level-level); });
+    same = sorted.slice(0,6);
+  }
+
+  // score แต่ละภาพใน level เดียวกัน
+  var allKw = aiKeywords||[];
+  var hasExtHigh = allKw.some(function(k){ return EXTREME_HIGH_KW.indexOf(k)>=0; });
+  var hasExtLow  = allKw.some(function(k){ return EXTREME_LOW_KW.indexOf(k)>=0; });
+
+  var scored = same.map(function(item){
+    var kMatch = 0;
+    if(item.keywords && allKw.length){
+      kMatch = item.keywords.filter(function(k){
+        return allKw.some(function(ak){ return ak===k || ak.indexOf(k)>=0 || k.indexOf(ak)>=0; });
+      }).length;
+    }
+    var sub = item.subScore||0; // 0-5
+    // ถ้า AI บอกว่า extreme สูง → เลือกภาพที่ subScore สูง
+    var subBonus = hasExtHigh ? sub*3 : hasExtLow ? (5-sub)*3 : 0;
+    return { item:item, score: kMatch*10 + subBonus };
+  });
+  scored.sort(function(a,b){ return b.score - a.score; });
+  return scored[0] ? scored[0].item : same[same.length-1]; // ถ้าเสมอให้เลือกสุดท้าย (มากสุด)
+}
+
+/* render ภาพที่ match — 1 ภาพหลักใหญ่ + 3 ภาพ grid */
+function pickTopImages(level, aiKw, limit){
+  limit=limit||4;
+  var db=loadDB();
+  var pool=db.filter(function(x){return x.level===level;});
+  if(!pool.length) pool=db.slice().sort(function(a,b){return Math.abs(a.level-level)-Math.abs(b.level-level);}).slice(0,limit*3);
+  var allKw=aiKw||[];
+  var hi=allKw.some(function(k){return EXTREME_HIGH_KW.indexOf(k)>=0;});
+  var lo=allKw.some(function(k){return EXTREME_LOW_KW.indexOf(k)>=0;});
+  var scored=pool.map(function(item){
+    var km=0;
+    if(item.keywords&&allKw.length)
+      km=item.keywords.filter(function(k){return allKw.some(function(a){return a===k||a.indexOf(k)>=0||k.indexOf(a)>=0;});}).length;
+    var sub=item.subScore||0;
+    return{item:item, score:km*10+(hi?sub*3:lo?(5-sub)*3:0)};
+  });
+  scored.sort(function(a,b){return b.score-a.score;});
+  var out=[],seen={};
+  scored.forEach(function(s){
+    if(out.length>=limit) return;
+    var k=s.item.subScore+'_'+s.item.level;
+    if(!seen[k]){out.push(s.item);seen[k]=1;}
+  });
+  scored.forEach(function(s){if(out.length<limit&&out.indexOf(s.item)<0) out.push(s.item);});
+  return out;
+}
+
+function renderSingleMatch(level, aiKeywords, containerId){
+  var el=document.getElementById(containerId);
+  if(!el) return;
+  var imgs=pickTopImages(level, aiKeywords||[], 4);
+  if(!imgs.length){el.innerHTML='';return;}
+
+  var best=imgs[0];
+  window._bestMatchItem=best;
+  var lv=best.level||level;
+  var lc=lv<=2?'#58a6ff':lv<=3?'#3fb950':lv<=4?'#f0a500':'#f85149';
+  var mk=(best.keywords||[]).filter(function(k){return(aiKeywords||[]).indexOf(k)>=0;});
+
+  var html='<div style="background:#0d1117;border-radius:12px;border:2px solid '+lc+';overflow:hidden;margin-bottom:8px;">'
+    +'<div style="position:relative;">'
+    +'<img src="'+best.thumb+'" style="width:100%;display:block;max-height:320px;object-fit:cover;" onerror="heeImgFail(this,'+lv+')">'
+    +'<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.85);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold;color:'+lc+';">Lv.'+lv+'/5</div>'
+    +(mk.length?'<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.85);padding:4px 8px;border-radius:20px;font-size:11px;color:#3fb950;">✓ ตรง '+mk.length+' คำ</div>':'')
+    +'</div>'
+    +'<div style="padding:8px 12px;">'
+    +'<div style="font-size:13px;font-weight:bold;color:'+lc+';">'+(best.title||best.desc||'')+'</div>'
+    +(mk.length?'<div style="font-size:11px;color:#8b949e;margin-top:3px;">คำที่ตรง: '+mk.slice(0,5).join(' · ')+'</div>':'')
+    +'</div></div>';
+
+  if(imgs.length>1){
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">';
+    imgs.slice(1).forEach(function(item){
+      var ic=item.level<=2?'#58a6ff':item.level<=3?'#3fb950':item.level<=4?'#f0a500':'#f85149';
+      html+='<div style="border-radius:8px;overflow:hidden;border:1px solid '+ic+';">'
+        +'<img src="'+item.thumb+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;" onerror="heeImgFail(this,'+item.level+')">'
+        +'<div style="background:rgba(0,0,0,.8);padding:3px 6px;font-size:9px;color:'+ic+';font-weight:bold;">'+(item.title||item.desc||'')+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+
+/* ── wrappers ที่ถูกเรียกจาก showNaraResult / showDateResult ── */
+function renderDBMatchesByKeywords(j, containerId){
+  var kw = extractKeywordsFromPrediction(j);
+  var lv = Math.min(5,Math.max(1,j.level||3));
+  renderSingleMatch(lv, kw, containerId);
+}
+
+function renderDBMatchesByAIKeywords(aiKeywords, level, containerId){
+  renderSingleMatch(level, aiKeywords, containerId);
+}
+
+function extractKeywordsFromPrediction(j){
+  var allText=[j.title||'',j.eyebrow||'',j.predict||'',j.tradition||'',j.fortune||''].join(' ');
+  return ['บาง','เส้นเล็ก','ระเบียบ','น้อย','กระจาย','สีอ่อน','ประปราย','นุ่มนวล','ละเอียด','เบา',
+    'เบาบาง','เจ้าสำอาง','สมดุล','หนา','สีเข้ม','ปานกลาง','เรียงระเบียบ','ดก','หนาแน่น',
+    'เส้นใหญ่','แข็งแรง','ดำ','ดกดำ','ฟู','หนามาก','ราตรีกาล','มหาเสน่ห์','ดำเงา','ยาว',
+    'ดกดำมาก','ฟูมาก','ยาวมาก','หยิก','ปกคลุม','บางละเอียด','เบาบางมาก'
+  ].filter(function(k){ return allText.indexOf(k)>=0; });
+}
+
+
+function onBodyFile(inp){
+  var f=inp.files[0]; if(!f) return;
+  var fr=new FileReader();
+  fr.onload=function(e){
+    bodyB64=e.target.result.split(',')[1];
+    var prev=document.getElementById('bodyPrev');
+    prev.src=e.target.result; prev.style.display='block';
+    document.getElementById('bodyTxt').textContent='✅ '+f.name;
+    bodyImg=new Image();
+    bodyImg.src=e.target.result;
+    // เปิดปุ่มทันที
+    document.getElementById('genBodyBtn').disabled = false;
+    // ถ้ายังไม่ได้วิเคราะห์ แสดง picker
+    if(naraLevel===0){
+      var picker=document.getElementById('bodyLevelPicker');
+      if(picker) picker.style.display='block';
+      naraLevel=3; // default Lv3
+    }
+  };
+  fr.readAsDataURL(f);
+}
+
+function loadBodyGDrive(){
+  var url=document.getElementById('bodyGDrive').value.trim();
+  var fid=extractGDriveId(url);
+  if(!fid){alert('ไม่พบ File ID');return;}
+  var imgUrl='https://lh3.googleusercontent.com/d/'+fid+'=s1200';
+  var im=new Image(); im.crossOrigin='anonymous';
+  im.onload=function(){
+    try{
+      var c=document.createElement('canvas'); c.width=im.width; c.height=im.height;
+      c.getContext('2d').drawImage(im,0,0);
+      var d=c.toDataURL('image/jpeg',0.92);
+      bodyB64=d.split(',')[1]; bodyImg=im;
+      document.getElementById('bodyPrev').src=d;
+      document.getElementById('bodyPrev').style.display='block';
+      document.getElementById('bodyTxt').textContent='✅ โหลดจาก Drive แล้ว';
+      document.getElementById('genBodyBtn').disabled=false;
+    }catch(e){
+      bodyB64='GDRIVE_URL:'+imgUrl; bodyImg=im;
+      document.getElementById('bodyPrev').src=imgUrl;
+      document.getElementById('bodyPrev').style.display='block';
+      document.getElementById('genBodyBtn').disabled=false;
+    }
+  };
+  im.onerror=function(){alert('โหลดภาพ Drive ไม่ได้ — ตรวจสอบว่า Share เป็น Public');};
+  im.src=imgUrl;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GEN BODY — New Image Generation System
+   Mode A (มีภาพต้นฉบับ): AI ตรวจตำแหน่ง → composite hee image
+   Mode B (ไม่มีภาพ):     AI ออกแบบท่าทาง → วาดร่างกายใหม่ + texture
+════════════════════════════════════════════════════════════ */
+
+function imgToB64(img){
+  try{
+    var c=document.createElement('canvas');
+    c.width=img.naturalWidth||img.width;
+    c.height=img.naturalHeight||img.height;
+    c.getContext('2d').drawImage(img,0,0);
+    return c.toDataURL('image/jpeg',0.85).split(',')[1];
+  }catch(e){ return null; }
+}
+
+function loadImgFromSrc(src, level, title){
+  return new Promise(function(resolve){
+    if(!src){ resolve(makePlaceholderImg(level||3,title||'')); return; }
+    var im=new Image(); im.crossOrigin='anonymous';
+    im.onload=function(){ resolve(im); };
+    im.onerror=function(){
+      var im2=new Image();
+      im2.onload=function(){ resolve(im2); };
+      im2.onerror=function(){ resolve(makePlaceholderImg(level||3,title||'')); };
+      im2.src=src;
+    };
+    im.src=src;
+  });
+}
+
+/* ─── Ask Claude: ออกแบบท่าทางและ layout ─── */
+async function askClaudeForPoseLayout(level, title, predict, bodyB64img) {
+  var hasbody = !!bodyB64img;
+  var prompt;
+  
+  if(hasbody){
+   prompt = `วิเคราะห์ภาพร่างกายนี้ แล้วบอกตำแหน่ง body regions สำหรับวาง hee texture (กมอยระดับ ${level}/5)
+ตอบ JSON เท่านั้น:
+{"hasBody":true,"pose":"(อธิบายท่าทาง)","skinTone":"light|medium|dark",
+"regions":[{"name":"ชื่อ","x":(0-100),"y":(0-100),"w":(0-100),"h":(0-100),"priority":1}]}`;
+  } else {
+    prompt = `คุณเป็นศิลปินออกแบบภาพประกอบนรลักษณ์ศาสตร์ไทย
+คำทำนาย: "${title}" — ${predict}
+ระดับกมอย: ${level}/5 (${level<=2?'บางเบา':level<=3?'ปานกลาง':level<=4?'ดกหนา':'ดกดำมาก'})
+
+ออกแบบท่าทางร่างกายที่เหมาะสมกับลักษณะกมอยนี้ แล้วบอก body regions สำหรับวาดภาพ
+ตอบ JSON เท่านั้น:
+{"hasBody":false,"pose":"(อธิบายท่าทางที่เหมาะ เช่น ยืนตัวตรงแขนแนบลำตัว / แขนกางออกสองข้าง)","gender":"male|female",
+"bodyShape":"slim|medium|muscular","regions":[{"name":"ชื่อส่วน","x":(0-100),"y":(0-100),"w":(0-100),"h":(0-100),"priority":1}]}`;
+  }
+
+  try{
+    var contentArr = [];
+    if(hasbody) {
+      // ดึงเฉพาะข้อมูล Base64 ที่แท้จริง (ตัด "data:image/jpeg;base64," ออกถ้ามี)
+      var pureBase64 = bodyB64img.includes(',') ? bodyB64img.split(',')[1] : bodyB64img;
+      contentArr.push({type:'image', source: {type:'base64', media_type:'image/jpeg', data: pureBase64}});
+    }
+    
+    contentArr.push({type:'text', text:prompt});
+    
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'ใส่_API_KEY_ของคุณที่นี่', // ⚠️ ต้องใส่ API Key ของคุณ
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true' // ⚠️ จำเป็นหากรันบนฝั่งหน้าเว็บโดยตรง
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022', // ใช้โมเดลที่ถูกต้อง
+        max_tokens: 800,
+        messages: [{role: 'user', content: contentArr}]
+      })
+    });
+    
+    if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+    }
+
+    var data = await res.json();
+    var txt = (data.content||[]).map(function(c){return c.text||'';}).join('').replace(/```json|```/g,'').trim();
+    return JSON.parse(txt);
+    
+  }catch(e){
+    console.error("Claude API Error:", e);
+    // คืนค่า Default เมื่อเกิด Error
+    return {
+      hasBody: hasbody, pose:'ยืนตัวตรงแขนแนบลำตัว', gender:'male', bodyShape:'medium',
+      regions:[
+        {name:'หน้าอก',x:30,y:18,w:40,h:22,priority:1},
+        {name:'ท้อง',x:33,y:40,w:34,h:18,priority:1},
+        {name:'แขนซ้าย',x:6,y:18,w:22,h:38,priority:2},
+        {name:'แขนขวา',x:72,y:18,w:22,h:38,priority:2},
+        {name:'ต้นขาซ้าย',x:24,y:60,w:20,h:30,priority:2},
+        {name:'ต้นขาขวา',x:56,y:60,w:20,h:30,priority:2}
+      ]
+    };
+  }
+}
+
+/* ─── วาดร่างกายใหม่บน canvas (Mode B: ไม่มีภาพต้นฉบับ) ─── */
+function drawBodySilhouette(ctx, W, H, poseInfo, level){
+  var skinColors = {
+    light:'#f5d8b8', medium:'#d4956a', dark:'#8b5e3c'
+  };
+  var skinColor = skinColors[poseInfo.skinTone||poseInfo.bodyShape==='muscular'?'medium':'medium'];
+
+  // วาด background gradient
+  var bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#1a1a2e'); bg.addColorStop(1,'#0d1117');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  // วาดร่างกายตาม regions ที่ AI กำหนด
+  ctx.fillStyle = skinColor;
+  (poseInfo.regions||[]).forEach(function(reg){
+    var rx=reg.x/100*W, ry=reg.y/100*H;
+    var rw=reg.w/100*W, rh=reg.h/100*H;
+    ctx.beginPath();
+    ctx.roundRect(rx,ry,rw,rh, Math.min(rw,rh)*0.3);
+    ctx.fill();
+  });
+
+  // วาดหัว
+  var headR = W*0.08;
+  ctx.beginPath();
+  ctx.arc(W/2, headR*1.4, headR, 0, Math.PI*2);
+  ctx.fillStyle = skinColor;
+  ctx.fill();
+}
+
+/* ─── Tile hee texture onto region ─── */
+function tileHeeTexture(ctx, heeImg, rx, ry, rw, rh, level, skinMask, W){
+  if(!heeImg||rw<4||rh<4) return;
+  var opacity = 0.3 + level*0.12; // Lv1=0.42 Lv5=0.90
+
+  // สร้าง off-screen canvas ที่มีภาพ hee tile
+  var off=document.createElement('canvas'); off.width=rw; off.height=rh;
+  var offCtx=off.getContext('2d');
+  var iw=heeImg.naturalWidth||heeImg.width||rw;
+  var ih=heeImg.naturalHeight||heeImg.height||rh;
+  // tile if small
+  var scX = rw/iw, scY = rh/ih;
+  var sc = Math.max(scX,scY);
+  var sw=iw*sc, sh=ih*sc;
+  offCtx.drawImage(heeImg, (rw-sw)/2, (rh-sh)/2, sw, sh);
+
+  // Apply per-pixel dengan skin mask
+  var destId, offId;
+  try{
+    destId = ctx.getImageData(rx,ry,rw,rh);
+    offId  = offCtx.getImageData(0,0,rw,rh);
+  }catch(e){
+    // CORS: fallback to simple overlay
+    ctx.save(); ctx.globalAlpha=opacity*0.6;
+    ctx.globalCompositeOperation='multiply';
+    ctx.drawImage(off,rx,ry,rw,rh);
+    ctx.restore(); return;
+  }
+
+  var dd=destId.data, od=offId.data, RH=Math.round(rh), RW=Math.round(rw);
+  for(var py=0;py<RH;py++){
+    for(var px=0;px<RW;px++){
+      var gx=Math.round(rx+px), gy=Math.round(ry+py);
+      // skin mask check
+      if(skinMask && gx>=0 && gx<W && gy>=0){
+        if(!skinMask[gy*W+gx]) continue;
+      }
+      var i=(py*RW+px)*4;
+      var alpha = od[i+3]/255;
+      var t = opacity*alpha;
+      // multiply blend
+      dd[i  ]=Math.round((dd[i  ]/255)*(od[i  ]/255)*255*t + dd[i  ]*(1-t));
+      dd[i+1]=Math.round((dd[i+1]/255)*(od[i+1]/255)*255*t + dd[i+1]*(1-t));
+      dd[i+2]=Math.round((dd[i+2]/255)*(od[i+2]/255)*255*t + dd[i+2]*(1-t));
+    }
+  }
+  ctx.putImageData(destId,rx,ry);
+}
+
+/* ─── Hair strokes on top for realism ─── */
+function addHairStrokes(ctx, W, H, regions, level){
+  var cols=['rgba(80,45,12,','rgba(55,32,8,','rgba(32,18,4,','rgba(15,8,2,','rgba(4,2,0,'];
+  var col=cols[Math.min(4,level-1)];
+  var len=8+level*5, lw=0.4+level*0.2;
+  regions.forEach(function(reg){
+    var rx=reg.x/100*W, ry=reg.y/100*H, rw=reg.w/100*W, rh=reg.h/100*H;
+    var count=Math.floor((reg.priority===1?1.0:0.5)*level*80+40);
+    for(var i=0;i<count;i++){
+      var px=rx+Math.random()*rw, py=ry+Math.random()*rh;
+      var angle=(Math.random()-0.5)*0.5;
+      var ex=px+(Math.random()-0.5)*4, ey=py+len*(0.7+Math.random()*0.6);
+      var al=0.4+Math.random()*0.45;
+      ctx.beginPath(); ctx.strokeStyle=col+al+')';
+      ctx.lineWidth=lw*(0.5+Math.random()*0.8); ctx.lineCap='round';
+      ctx.moveTo(px,py); ctx.quadraticCurveTo(px+(Math.random()-0.5)*len*0.4,py+len*0.4,ex,ey);
+      ctx.stroke();
+    }
+  });
+}
+
+/* ─── MAIN GEN BODY — ใช้ภาพจากตำรา + เพิ่มความชัด/รายละเอียดเส้นขน ─── */
+async function genBodyOverlay(){
+  var lv = naraLevel>0?naraLevel:3;
+  var prog=document.getElementById('bodyProg');
+  var fill=document.getElementById('bodyFill');
+  var progTxt=document.getElementById('bodyProgTxt');
+  prog.style.display='block'; fill.style.width='0%';
+  document.getElementById('bodyResult').style.display='none';
+  document.getElementById('genBodyBtn').disabled=true;
+
+  var canvas=document.getElementById('bodyCanvas');
+  var cBefore=document.getElementById('bodyCanvasBefore');
+
+  // ── โหลด hee image ที่ตรงที่สุดจากตำรา ──
+  progTxt.textContent='📦 โหลดภาพจากตำรา...'; fill.style.width='15%';
+  var bestItem = window._bestMatchItem || pickBestSingleImage(lv, naraLastKeywords);
+
+  // ถ้าหา bestItem ไม่ได้ ให้สร้าง placeholder item แทน
+  if(!bestItem){ bestItem = { thumb:'', title:naraTitle||'กมอยระดับ '+lv, level:lv }; }
+
+  var heeImg = await loadImgFromSrc(bestItem.thumb, lv, bestItem.title||'');
+  // heeImg จะเป็น placeholder ถ้าโหลดไม่ได้ ไม่ต้อง alert แล้ว
+  if(!heeImg){
+    heeImg = makePlaceholderImg(lv, bestItem.title||'');
+  }
+
+  progTxt.textContent='🔬 เพิ่มความชัดรายละเอียด...'; fill.style.width='40%';
+
+  // ── รอให้ภาพโหลดเสร็จ (กรณี placeholder) ──
+  await new Promise(function(res){ if(heeImg.complete&&heeImg.naturalWidth>0){res();return;} heeImg.onload=res; heeImg.onerror=res; setTimeout(res,500); });
+  // ── ขนาด canvas = ขนาดภาพต้นฉบับ (ไม่บิดเบี้ยว) ──
+  var iW = heeImg.naturalWidth||heeImg.width||600;
+  var iH = heeImg.naturalHeight||heeImg.height||600;
+  // ขยาย 2x เพื่อความชัด
+  var W = iW*2, H = iH*2;
+  canvas.width=W; canvas.height=H;
+  cBefore.width=W; cBefore.height=H;
+
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(heeImg, 0, 0, W, H);
+
+  // บันทึก before
+  cBefore.getContext('2d').drawImage(heeImg, 0, 0, W, H);
+
+  fill.style.width='60%';
+  progTxt.textContent='✨ Sharpen เส้นขน...';
+
+  // ── Multi-pass sharpening เพื่อเส้นขนมองชัด ──
+  await new Promise(function(r){setTimeout(r,20);});
+  try{
+    var id = ctx.getImageData(0,0,W,H);
+
+    // Pass 1: Denoise เบา (ลด noise ก่อน sharpen)
+    denoisePass(id, W, H, 0.25);
+
+    // Pass 2: Sharpen แรง — เส้นขน/รายละเอียดชัด
+    sharpenPass(id, W, H, 2.0);
+    fill.style.width='72%';
+
+    // Pass 3: Edge enhancement (unsharp mask style สำหรับเส้นขน)
+    var d=id.data, tmp=new Uint8ClampedArray(d);
+    var k2=[-1,-2,-1,-2,13,-2,-1,-2,-1]; // stronger edge kernel
+    for(var py=1;py<H-1;py++){
+      for(var px=1;px<W-1;px++){
+        var idx=(py*W+px)*4;
+        for(var ch=0;ch<3;ch++){
+          var v=0;
+          for(var ky=-1;ky<=1;ky++) for(var kx=-1;kx<=1;kx++)
+            v+=tmp[((py+ky)*W+(px+kx))*4+ch]*k2[(ky+1)*3+(kx+1)];
+          var edge=Math.min(255,Math.max(0,v/2));
+          d[idx+ch]=Math.round(tmp[idx+ch]*0.3+edge*0.7);
+        }
+      }
+    }
+    fill.style.width='84%';
+
+    // Pass 4: Color — เพิ่ม contrast/saturation ให้สีเส้นขนเข้มชัด
+    colorPass(id, W, H, 1.20, 0, 1.25);
+
+    ctx.putImageData(id, 0, 0);
+  }catch(e){ console.error('body enhance error:',e); }
+
+  // ── Watermark ──
+  ctx.fillStyle='rgba(0,0,0,0.70)'; ctx.fillRect(0,H-52,W,52);
+  ctx.fillStyle='rgba(240,165,0,0.95)';
+  ctx.font='bold '+(W>600?16:13)+'px "Segoe UI",sans-serif'; ctx.textAlign='center';
+  ctx.fillText('กมอยระดับ '+lv+'/5'+(naraTitle?' — '+naraTitle:'')+(bestItem.title?' ('+bestItem.title+')':''), W/2, H-28);
+  ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font=(W>600?12:10)+'px sans-serif';
+  ctx.fillText('นรลักษณ์ศาสตร์ — เส้นขนคมชัดระดับสูง', W/2, H-9);
+
+  fill.style.width='100%'; progTxt.textContent='✅ เสร็จแล้ว!';
+  setTimeout(function(){
+    prog.style.display='none'; fill.style.width='0%';
+    document.getElementById('genBodyBtn').disabled=false;
+    document.getElementById('bodyResult').style.display='block';
+    initBodyCompare(W,H);
+    document.getElementById('bodyResult').scrollIntoView({behavior:'smooth'});
+  },400);
+}
+
+function initBodyCompare(W,H){
+  var box=document.getElementById('bodyCompareBox');
+  var overlay=document.getElementById('bodyOverlay');
+  var divider=document.getElementById('bodyDivider');
+  var pct=50;
+  function setPos(p){ pct=Math.min(98,Math.max(2,p)); overlay.style.width=pct+'%'; divider.style.left=pct+'%'; }
+  setPos(50);
+  function onMove(cx){ var r=box.getBoundingClientRect(); setPos((cx-r.left)/r.width*100); }
+  box.onmousedown=function(e){ e.preventDefault(); document.onmousemove=function(ev){onMove(ev.clientX);}; document.onmouseup=function(){document.onmousemove=null;}; };
+  box.ontouchstart=function(){ document.ontouchmove=function(ev){ ev.preventDefault(); onMove(ev.touches[0].clientX); }; document.ontouchend=function(){document.ontouchmove=null;}; };
+}
+
+function buildSkinMask(imageData){
+  var d=imageData.data,w=imageData.width,h=imageData.height,mask=new Uint8Array(w*h);
+  for(var i=0;i<d.length;i+=4){
+    var r=d[i],g=d[i+1],b=d[i+2];
+    mask[i/4]=((r>60&&g>30&&b>10&&r>g&&r>b&&Math.abs(r-g)>8&&(r-b)>12&&r<250)||(r>35&&g>18&&b>8&&r>b&&(r+g+b)<520&&r>=g*0.85))?1:0;
+  }
+  var m2=new Uint8Array(mask);
+  for(var y=1;y<h-1;y++) for(var x=1;x<w-1;x++){
+    if(!mask[y*w+x]&&(mask[(y-1)*w+x]||mask[(y+1)*w+x]||mask[y*w+x-1]||mask[y*w+x+1])) m2[y*w+x]=1;
+  }
+  return m2;
+}
+
+/* Fallback hair strokes (ใช้ถ้าไม่มี hee image) */
+function drawHairOnBody(ctx,W,H,regions,level,skinMask){
+  addHairStrokes(ctx,W,H,regions.map(function(r){
+    return {x:r.cx-r.rx,y:r.cy-r.ry,w:r.rx*2,h:r.ry*2,priority:1};
+  }),level);
+}
+
+function saveBodyCanvas(){
+  var a=document.createElement('a');
+  a.download='gamoiy_body_lv'+naraLevel+'.png';
+  a.href=document.getElementById('bodyCanvas').toDataURL('image/png');
+  a.click();
+}
+
+/* ═══════════════════════════════════
+   ENCHANT
+═══════════════════════════════════ */
+var eToggles = {sharp:true, denoise:true, color:true, face:true};
+
+/* handleFileUpload — ใช้สำหรับ imageInput ในส่วน upload-container */
+function handleFileUpload(event){
+  var f = event.target.files[0]; if(!f) return;
+  var fr = new FileReader();
+  fr.onload = function(e){
+    enchantB64 = e.target.result.split(',')[1];
+    var prev = document.getElementById('imgPreview');
+    if(prev){ prev.src = e.target.result; }
+    var wrap = document.getElementById('userPreview');
+    if(wrap) wrap.style.display = 'block';
+    document.getElementById('eTxt').textContent = '✅ ' + f.name;
+    document.getElementById('eBtn').disabled = false;
+    document.getElementById('compareWrap').style.display = 'none';
+  };
+  fr.readAsDataURL(f);
+}
+
+document.getElementById('eFile').addEventListener('change',function(){
+  var f=this.files[0]; if(!f) return;
+  var fr=new FileReader();
+  fr.onload=function(e){
+    enchantB64=e.target.result.split(',')[1];
+    var p=document.getElementById('ePrev'); p.src=e.target.result; p.style.display='block';
+    document.getElementById('eTxt').textContent='✅ '+f.name;
+    document.getElementById('eBtn').disabled=false;
+    document.getElementById('eCanvas').style.display='none';
+    document.getElementById('eSave').style.display='none';
+    document.getElementById('eInfo').style.display='none';
+    document.getElementById('compareWrap').style.display='none';
+  };
+  fr.readAsDataURL(f);
+});
+
+function setEScale(s,el){
+  enchantScale=s;
+  document.querySelectorAll('.q-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+}
+
+function toggleE(key, el){
+  eToggles[key] = !eToggles[key];
+  el.classList.toggle('active', eToggles[key]);
+}
+
+function doEnchant(){
+  if(!enchantB64) return;
+  var prog=document.getElementById('eProg'), fill=document.getElementById('eFill');
+  var progTxt=document.getElementById('eProgTxt');
+  prog.style.display='block'; fill.style.width='0%';
+  document.getElementById('eBtn').disabled=true;
+  document.getElementById('compareWrap').style.display='none';
+
+  var MAX_DIM = 2048; // ป้องกัน Out of Memory
+
+  var im=new Image();
+  im.onerror=function(){
+    prog.style.display='none';
+    document.getElementById('eBtn').disabled=false;
+    alert('โหลดภาพไม่ได้ — กรุณาลองใหม่');
+  };
+  im.onload=function(){
+    // ── Cap ขนาดภาพก่อน upscale ──
+    var srcW = im.width, srcH = im.height;
+    var scale = enchantScale;
+    var W = srcW * scale, H = srcH * scale;
+    // ถ้า output เกิน MAX_DIM ให้ลดสัดส่วนลง
+    if(W > MAX_DIM || H > MAX_DIM){
+      var ratio = Math.min(MAX_DIM/W, MAX_DIM/H);
+      W = Math.round(W * ratio);
+      H = Math.round(H * ratio);
+    }
+
+    // ── BEFORE canvas ──
+    var cBefore=document.getElementById('eCanvasBefore');
+    cBefore.width=W; cBefore.height=H;
+    var ctxB=cBefore.getContext('2d');
+    ctxB.imageSmoothingEnabled=true; ctxB.imageSmoothingQuality='high';
+    ctxB.drawImage(im,0,0,W,H);
+
+    // ── AFTER canvas ──
+    var cAfter=document.getElementById('eCanvasAfter');
+    cAfter.width=W; cAfter.height=H;
+    var ctx=cAfter.getContext('2d');
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    ctx.drawImage(im,0,0,W,H);
+
+    fill.style.width='20%'; progTxt.textContent='⏳ Upscaling...';
+
+    setTimeout(function(){
+      try{
+        var id=ctx.getImageData(0,0,W,H);
+
+        // 1. Denoise (box blur then blend back)
+        if(eToggles.denoise){
+          fill.style.width='35%'; progTxt.textContent='🌫️ Denoise...';
+          var str=parseInt(document.getElementById('sl-denoise').value)/10;
+          denoisePass(id, W, H, str);
+        }
+
+        // 2. Sharpness (unsharp mask)
+        if(eToggles.sharp){
+          fill.style.width='55%'; progTxt.textContent='🔬 Sharpening...';
+          var sv=parseInt(document.getElementById('sl-sharp').value)/5;
+          sharpenPass(id, W, H, sv);
+        }
+
+        // 3. Color: brightness, contrast, saturation
+        if(eToggles.color){
+          fill.style.width='72%'; progTxt.textContent='🎨 Color Enhance...';
+          var sat=(parseInt(document.getElementById('sl-sat').value))/10+1;
+          var bright=parseInt(document.getElementById('sl-bright').value)*3;
+          var cont=(parseInt(document.getElementById('sl-contrast').value))/10+1;
+          colorPass(id, W, H, sat, bright, cont);
+        }
+
+        // flush pixel changes to canvas ก่อน facePass เสมอ
+        ctx.putImageData(id,0,0);
+
+        // 4. Face Enhance: detect skin-bright region at top half, apply local sharpen+brighten
+        if(eToggles.face){
+          fill.style.width='88%'; progTxt.textContent='👤 Face Enhance...';
+          facePass(ctx, id, W, H);
+        }
+
+      }catch(err){
+        console.error('Enchant pixel error:', err);
+        // fallback: แสดงภาพ upscale เปล่าๆ โดยไม่ crash
+      }
+
+      fill.style.width='100%'; progTxt.textContent='✅ เสร็จแล้ว!';
+
+      // store full-res in hidden canvas
+      var cFull=document.getElementById('eCanvas');
+      cFull.width=W; cFull.height=H;
+      cFull.getContext('2d').drawImage(cAfter,0,0);
+
+      setTimeout(function(){
+        // setup compare + แสดงผล
+        document.getElementById('compareWrap').style.display='block';
+        initCompare(W,H);
+        prog.style.display='none'; fill.style.width='0%';
+        var inf=document.getElementById('eInfo');
+        inf.textContent='✅ '+srcW+'×'+srcH+' → '+W+'×'+H+' px  (×'+enchantScale+')';
+        inf.style.display='block';
+        document.getElementById('eSave').style.display='block';
+        document.getElementById('eBtn').disabled=false;
+        document.getElementById('compareWrap').scrollIntoView({behavior:'smooth'});
+      },300);
+    },120);
+  };
+  im.src='data:image/jpeg;base64,'+enchantB64;
+}
+
+/* ── Denoise: simple box blur weighted blend ── */
+function denoisePass(id, w, h, strength){
+  var d=id.data, tmp=new Uint8ClampedArray(d);
+  var radius=1;
+  for(var y=radius;y<h-radius;y++){
+    for(var x=radius;x<w-radius;x++){
+      var idx=(y*w+x)*4;
+      for(var ch=0;ch<3;ch++){
+        var sum=0,cnt=0;
+        for(var dy=-radius;dy<=radius;dy++)
+          for(var dx=-radius;dx<=radius;dx++){
+            sum+=tmp[((y+dy)*w+(x+dx))*4+ch]; cnt++;
+          }
+        var blurred=sum/cnt;
+        d[idx+ch]=Math.round(tmp[idx+ch]*(1-strength)+blurred*strength);
+      }
+    }
+  }
+}
+
+/* ── Sharpen: unsharp mask ── */
+function sharpenPass(id, w, h, strength){
+  var d=id.data, tmp=new Uint8ClampedArray(d);
+  var k=[-1,-1,-1,-1,9,-1,-1,-1,-1];
+  var blend=Math.min(1,strength*0.5);
+  for(var y=1;y<h-1;y++){
+    for(var x=1;x<w-1;x++){
+      var idx=(y*w+x)*4;
+      for(var ch=0;ch<3;ch++){
+        var v=0;
+        for(var ky=-1;ky<=1;ky++) for(var kx=-1;kx<=1;kx++)
+          v+=tmp[((y+ky)*w+(x+kx))*4+ch]*k[(ky+1)*3+(kx+1)];
+        var sharp=Math.min(255,Math.max(0,v));
+        d[idx+ch]=Math.round(tmp[idx+ch]*(1-blend)+sharp*blend);
+      }
+    }
+  }
+}
+
+/* ── Color: saturation + brightness + contrast ── */
+function colorPass(id, w, h, sat, bright, cont){
+  var d=id.data;
+  for(var i=0;i<d.length;i+=4){
+    var r=d[i],g=d[i+1],b=d[i+2];
+    // saturation via luminance
+    var lum=0.2126*r+0.7152*g+0.0722*b;
+    r=lum+(r-lum)*sat; g=lum+(g-lum)*sat; b=lum+(b-lum)*sat;
+    // brightness
+    r+=bright; g+=bright; b+=bright;
+    // contrast (around 128)
+    r=(r-128)*cont+128; g=(g-128)*cont+128; b=(b-128)*cont+128;
+    d[i]  =Math.min(255,Math.max(0,Math.round(r)));
+    d[i+1]=Math.min(255,Math.max(0,Math.round(g)));
+    d[i+2]=Math.min(255,Math.max(0,Math.round(b)));
+  }
+}
+
+/* ── Face Enhance: find brightest skin cluster top-half, local sharpen ── */
+function facePass(ctx, id, w, h){
+  // put current state first
+  ctx.putImageData(id,0,0);
+  // detect face zone: scan top 55% for skin pixels
+  var d=id.data;
+  var minX=w,maxX=0,minY=h,maxY=0,found=0;
+  var scanH=Math.floor(h*0.55);
+  for(var y=0;y<scanH;y+=3){
+    for(var x=0;x<w;x+=3){
+      var idx=(y*w+x)*4, r=d[idx],g=d[idx+1],b=d[idx+2];
+      var isSkin=r>80&&g>40&&b>20&&r>g&&r>b&&(r-b)>15&&r<250;
+      if(isSkin){
+        if(x<minX)minX=x; if(x>maxX)maxX=x;
+        if(y<minY)minY=y; if(y>maxY)maxY=y;
+        found++;
+      }
+    }
+  }
+  if(found<30) return; // no face found
+  // expand region slightly
+  var pad=Math.floor(w*0.05);
+  minX=Math.max(0,minX-pad); maxX=Math.min(w,maxX+pad);
+  minY=Math.max(0,minY-pad); maxY=Math.min(h,maxY+pad);
+  var fw=maxX-minX, fh=maxY-minY;
+  if(fw<10||fh<10) return;
+  // get face region
+  var faceId=ctx.getImageData(minX,minY,fw,fh);
+  // apply stronger sharpen to face region
+  var fakeId={data:new Uint8ClampedArray(faceId.data)};
+  sharpenPass(faceId, fw, fh, 1.2);
+  // slight brighten
+  colorPass(faceId, fw, fh, 1.0, 4, 1.05);
+  ctx.putImageData(faceId,minX,minY);
+}
+
+/* ── Before/After compare slider ── */
+function initCompare(W,H){
+  var box=document.getElementById('compareBox');
+  var overlay=document.getElementById('compareOverlay');
+  var divider=document.getElementById('compareDivider');
+  var pct=50;
+  document.getElementById('compareWrap').style.display='block';
+
+  function setPos(p){
+    pct=Math.min(98,Math.max(2,p));
+    overlay.style.width=pct+'%';
+    divider.style.left=pct+'%';
+  }
+  setPos(50);
+
+  function onMove(clientX){
+    var rect=box.getBoundingClientRect();
+    setPos((clientX-rect.left)/rect.width*100);
+  }
+  box.onmousedown=function(e){ e.preventDefault();
+    document.onmousemove=function(ev){onMove(ev.clientX);};
+    document.onmouseup=function(){document.onmousemove=null;};
+  };
+  box.ontouchstart=function(e){
+    document.ontouchmove=function(ev){ ev.preventDefault(); onMove(ev.touches[0].clientX); };
+    document.ontouchend=function(){document.ontouchmove=null;};
+  };
+}
+
+function saveEnchant(){
+  var a=document.createElement('a');
+  a.download='enchanted_x'+enchantScale+'.png';
+  a.href=document.getElementById('eCanvas').toDataURL('image/png');
+  a.click();
+}
+
+/* เปลี่ยน label และปุ่มทันทีเมื่อเลือกเพศ */
+function onGenderChange(gender){
+  var isMale = (gender === 'ชาย');
+  var btn = document.getElementById('dPredictBtn');
+  var titlebar = document.getElementById('dTitleBar');
+  var hairLabel = document.getElementById('dHairLabel');
+  if(btn) btn.textContent = isMale ? '🔮 ทำนายลักษณะควยจากดวงชะตา' : '🔮 ทำนายกมอยจากดวงชะตา';
+  if(titlebar) titlebar.textContent = isMale ? '📅 ทำนายลักษณะควยจากวันเวลาเกิด' : '📅 ทำนายกมอยจากวันเวลาเกิด';
+  if(hairLabel) hairLabel.textContent = isMale ? '🔬 ลักษณะควยที่ดวงบ่งบอก' : '🔬 ลักษณะกมอยที่ดวงบ่งบอก';
+}
+
+
+/* เลือก level กมอยด้วยตนเอง (ก่อนวิเคราะห์) */
+function setBodyLevel(lv, el){
+  naraLevel = lv;
+  naraRegions = buildFallback(lv).body_regions;
+  var badge = document.getElementById('bodyLevelBadge');
+  if(badge) badge.textContent = 'Lv.'+lv+'/5';
+  document.querySelectorAll('#bodyLevelPicker .q-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  var gb = document.getElementById('genBodyBtn');
+  if(gb && (bodyB64||bodyImg)) gb.disabled = false;
+}
+
+function predictDate() { // ลบ Async ออกไปได้เลย และแก้ F เป็นตัวเล็ก
+  var dateVal = document.getElementById('bDate').value;
+  if(!dateVal){ alert('กรุณาเลือกวันเกิด'); return; }
+
+  // โชว์หลอดกำลังโหลด
+  document.getElementById('dLoad').style.display='block';
+  document.getElementById('dResult').style.display='none';
+
+  var hourVal = document.getElementById('bHour').value;
+  var gender = document.getElementById('bGender').value;
+
+  // จำลองเวลาประมวลผล 1.5 วินาที
+  setTimeout(function() {
+    try{
+      var localResult = predictDateLocally(dateVal, hourVal, gender);
+      document.getElementById('dLoad').style.display='none';
+      showDateResult(localResult);
+    }catch(e){
+      document.getElementById('dLoad').style.display='none';
+      console.error('predictDate error:',e);
+      var lv=3; var fb=buildFallback(lv);
+      showDateResult({level:lv,stars:fb.stars,title:fb.title,astro:'ไม่สามารถคำนวณได้',
+        hair:fb.predict,fortune:fb.fortune,_isMale:(gender==='ชาย'),db_keywords:HEE_KEYWORDS[lv]});
+    }
+  }, 1500);
+} // predictDate
+
+function showDateResult(j){
+  var isMale = j._isMale || false;
+  document.getElementById('dStars').innerHTML='★'.repeat(j.stars||3)+'☆'.repeat(5-(j.stars||3));
+  document.getElementById('dTitle').textContent=j.title||'';
+  document.getElementById('dAstro').textContent=j.astro||'';
+  document.getElementById('dHair').textContent=j.hair||'';
+  document.getElementById('dFortune').textContent=j.fortune||'';
+  // อัพเดต label ตามเพศ
+  var lbl = document.getElementById('dHairLabel');
+  if(lbl) lbl.textContent = isMale ? '🔬 ลักษณะควยที่ดวงบ่งบอก' : '🔬 ลักษณะกมอยที่ดวงบ่งบอก';
+  var titlebar = document.getElementById('dTitleBar');
+  if(titlebar) titlebar.textContent = isMale ? '📅 ทำนายลักษณะควยจากวันเวลาเกิด' : '📅 ทำนายกมอยจากวันเวลาเกิด';
+  // ซ่อนภาพจาก JSON ถ้าเป็นชาย
+  var matchEl = document.getElementById('dateDBMatches');
+  if(isMale){
+    if(matchEl) matchEl.innerHTML = '';
+  } else {
+    if(j.db_keywords && j.db_keywords.length){
+      renderDBMatchesByAIKeywords(j.db_keywords, j.stars||3, 'dateDBMatches');
+    } else {
+      renderDBMatchesByKeywords({level:j.stars||3, title:j.title||'', predict:j.hair||'', fortune:j.fortune||''}, 'dateDBMatches');
+    }
+  }
+  var r=document.getElementById('dResult'); r.style.display='block';
+  setTimeout(function(){r.scrollIntoView({behavior:'smooth'});},100);
+}
+
+/* ═══════════════════════════════════
+   MERGE
+   แก้ปัญหาหลัก 5 อย่างที่ทำให้ภาพดูปลอม:
+   1. Hard Edge → Feather Mask (Gaussian blur on alpha)
+   2. Color Mismatch → Sample & match average RGB
+   3. Luminosity Mismatch → Match brightness histogram
+   4. Wrong Scale/Position → Transform controls
+   5. Flat composite → Blend mode + shadow
+═══════════════════════════════════ */
+var mBaseImg  = null;
+var mLayerImg = null;
+var mBaseB64  = null;
+var mLayerB64 = null;
+
+function onMergeFile(type, inp){
+  var f=inp.files[0]; if(!f) return;
+  var fr=new FileReader();
+  fr.onload=function(e){
+    var dataUrl=e.target.result;
+    var im=new Image();
+    im.onload=function(){
+      if(type==='base'){
+        mBaseImg=im; mBaseB64=dataUrl.split(',')[1];
+        document.getElementById('mBasePrev').src=dataUrl;
+        document.getElementById('mBasePrev').style.display='block';
+        document.getElementById('mBaseTxt').textContent='✅ '+f.name+' ('+im.width+'×'+im.height+')';
+      } else {
+        mLayerImg=im; mLayerB64=dataUrl.split(',')[1];
+        document.getElementById('mLayerPrev').src=dataUrl;
+        document.getElementById('mLayerPrev').style.display='block';
+        document.getElementById('mLayerTxt').textContent='✅ '+f.name+' ('+im.width+'×'+im.height+')';
+      }
+      document.getElementById('mBtn').disabled = !(mBaseImg && mLayerImg);
+    };
+    im.src=dataUrl;
+  };
+  fr.readAsDataURL(f);
+}
+
+function doMerge(){
+  if(!mBaseImg||!mLayerImg) return;
+  var prog=document.getElementById('mProg'), fill=document.getElementById('mFill');
+  var progTxt=document.getElementById('mProgTxt');
+  prog.style.display='block'; fill.style.width='0%';
+  document.getElementById('mBtn').disabled=true;
+  document.getElementById('mCompareWrap').style.display='none';
+
+  setTimeout(function(){
+    var W=mBaseImg.width, H=mBaseImg.height;
+
+    // ── Before canvas (base only) ──
+    var cBefore=document.getElementById('mCanvasBefore');
+    cBefore.width=W; cBefore.height=H;
+    var ctxB=cBefore.getContext('2d');
+    ctxB.drawImage(mBaseImg,0,0,W,H);
+
+    // ── After canvas ──
+    var cAfter=document.getElementById('mCanvasAfter');
+    cAfter.width=W; cAfter.height=H;
+    var ctx=cAfter.getContext('2d');
+    ctx.drawImage(mBaseImg,0,0,W,H);
+
+    fill.style.width='20%'; progTxt.textContent='📐 คำนวณตำแหน่ง...';
+
+    // Read settings
+    var opacity    = parseInt(document.getElementById('mOpacity').value)/100;
+    var feather    = parseInt(document.getElementById('mFeather').value);
+    var posXpct    = parseInt(document.getElementById('mPosX').value)/100;
+    var posYpct    = parseInt(document.getElementById('mPosY').value)/100;
+    var scalePct   = parseInt(document.getElementById('mScale').value)/100;
+    var blendMode  = document.getElementById('mBlendMode').value;
+    var colorMatch = document.getElementById('mColorMatch').checked;
+    var lumiMatch  = document.getElementById('mLumiMatch').checked;
+    var addShadow  = document.getElementById('mShadow').checked;
+
+    // Layer dimensions after scale
+    var lW = Math.round(mLayerImg.width  * scalePct * (W/mLayerImg.width));
+    var lH = Math.round(mLayerImg.height * scalePct * (H/mLayerImg.height) * (mLayerImg.height/mLayerImg.width) * (mLayerImg.width/mLayerImg.width));
+    // keep aspect
+    var aspect = mLayerImg.height/mLayerImg.width;
+    lW = Math.round(W * scalePct);
+    lH = Math.round(lW * aspect);
+
+    // Position: center + offset
+    var lX = Math.round((W-lW)/2 + posXpct*W);
+    var lY = Math.round((H-lH)/2 + posYpct*H);
+
+    fill.style.width='35%'; progTxt.textContent='🎨 Color Matching...';
+
+    // ── Render layer to offscreen canvas ──
+    var offC=document.createElement('canvas');
+    offC.width=lW; offC.height=lH;
+    var offCtx=offC.getContext('2d');
+    offCtx.drawImage(mLayerImg,0,0,lW,lH);
+    var layerId=offCtx.getImageData(0,0,lW,lH);
+
+    // ── 1. Color Match: sample base region → adjust layer ──
+    if(colorMatch||lumiMatch){
+      // Sample base pixels at layer region
+      var bx=Math.max(0,lX), by=Math.max(0,lY);
+      var bw=Math.min(W-bx,lW), bh=Math.min(H-by,lH);
+      var baseRegion=ctx.getImageData(bx,by,Math.max(1,bw),Math.max(1,bh));
+      var bAvg=avgColor(baseRegion.data);
+      var lAvg=avgColor(layerId.data);
+
+      if(colorMatch){
+        // Shift layer color towards base color
+        var rShift=(bAvg[0]-lAvg[0])*0.45;
+        var gShift=(bAvg[1]-lAvg[1])*0.45;
+        var bShift=(bAvg[2]-lAvg[2])*0.45;
+        var d=layerId.data;
+        for(var i=0;i<d.length;i+=4){
+          if(d[i+3]<10) continue;
+          d[i]  =clamp(d[i]  +rShift);
+          d[i+1]=clamp(d[i+1]+gShift);
+          d[i+2]=clamp(d[i+2]+bShift);
+        }
+      }
+      if(lumiMatch){
+        // Match luminosity
+        var bLumi=(bAvg[0]*0.2126+bAvg[1]*0.7152+bAvg[2]*0.0722);
+        var lLumi=(lAvg[0]*0.2126+lAvg[1]*0.7152+lAvg[2]*0.0722);
+        var lumiRatio = lLumi>0 ? bLumi/lLumi : 1;
+        lumiRatio=Math.min(1.6,Math.max(0.4,lumiRatio));
+        var da=layerId.data;
+        for(var j=0;j<da.length;j+=4){
+          if(da[j+3]<10) continue;
+          da[j]  =clamp(da[j]  *lumiRatio*0.5+da[j]  *0.5);
+          da[j+1]=clamp(da[j+1]*lumiRatio*0.5+da[j+1]*0.5);
+          da[j+2]=clamp(da[j+2]*lumiRatio*0.5+da[j+2]*0.5);
+        }
+      }
+      offCtx.putImageData(layerId,0,0);
+    }
+
+    fill.style.width='55%'; progTxt.textContent='🌫️ Feathering edges...';
+
+    // ── 2. Feather Mask: gaussian blur on alpha edge ──
+    if(feather>0){
+      applyFeatherMask(offCtx, offC, lW, lH, feather);
+    }
+
+    fill.style.width='72%'; progTxt.textContent='🔀 Blending layers...';
+
+    // ── 3. Drop Shadow (draw before layer) ──
+    if(addShadow){
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.55)';
+      ctx.shadowBlur = feather+12;
+      ctx.shadowOffsetX=4; ctx.shadowOffsetY=6;
+      ctx.drawImage(offC, lX, lY, lW, lH);
+      ctx.restore();
+    }
+
+    // ── 4. Blend Mode composite ──
+    ctx.save();
+    ctx.globalAlpha=opacity;
+    // CSS blend modes map
+    var cssBlend={
+      'normal':'source-over','multiply':'multiply','screen':'screen',
+      'overlay':'overlay','soft-light':'soft-light','hard-light':'hard-light',
+      'luminosity':'luminosity','color':'color'
+    };
+    ctx.globalCompositeOperation = cssBlend[blendMode]||'source-over';
+    ctx.drawImage(offC, lX, lY, lW, lH);
+    ctx.restore();
+
+    // ── 5. Multi-pass edge smooth: blend border pixels with base ──
+    if(feather>0){
+      smoothEdgeBorder(ctx, cBefore, lX, lY, lW, lH, W, H, feather);
+    }
+
+    fill.style.width='100%'; progTxt.textContent='✅ Merge เสร็จแล้ว!';
+
+    // copy to full-res canvas
+    var cFull=document.getElementById('mCanvas');
+    cFull.width=W; cFull.height=H;
+    cFull.getContext('2d').drawImage(cAfter,0,0);
+
+    setTimeout(function(){
+      initMergeCompare(W,H);
+      prog.style.display='none'; fill.style.width='0%';
+      document.getElementById('mSave').style.display='block';
+      document.getElementById('mBtn').disabled=false;
+      document.getElementById('mCompareWrap').scrollIntoView({behavior:'smooth'});
+    },300);
+
+  },80);
+}
+
+/* ── helpers ── */
+function clamp(v){ return Math.min(255,Math.max(0,Math.round(v))); }
+
+function avgColor(data){
+  var r=0,g=0,b=0,cnt=0;
+  for(var i=0;i<data.length;i+=4){
+    if(data[i+3]<30) continue;
+    r+=data[i]; g+=data[i+1]; b+=data[i+2]; cnt++;
+  }
+  if(!cnt) return [128,128,128];
+  return [r/cnt, g/cnt, b/cnt];
+}
+
+/* Feather: erode alpha near edges using radial gradient mask */
+function applyFeatherMask(ctx, canvas, w, h, radius){
+  // create a temp canvas with white fill then blur
+  var tmp=document.createElement('canvas'); tmp.width=w; tmp.height=h;
+  var tc=tmp.getContext('2d');
+  tc.fillStyle='#fff';
+  tc.beginPath();
+  var inset=radius;
+  tc.roundRect(inset,inset,w-inset*2,h-inset*2,radius);
+  tc.fill();
+  // multiple box-blur passes to approximate gaussian
+  for(var pass=0;pass<3;pass++) blurCanvas(tc,tmp,w,h,Math.ceil(radius/2));
+  // apply as alpha mask via destination-in
+  ctx.globalCompositeOperation='destination-in';
+  ctx.drawImage(tmp,0,0);
+  ctx.globalCompositeOperation='source-over';
+}
+
+function blurCanvas(ctx, canvas, w, h, r){
+  var id=ctx.getImageData(0,0,w,h), d=id.data, tmp=new Uint8ClampedArray(d);
+  for(var y=r;y<h-r;y++){
+    for(var x=r;x<w-r;x++){
+      var idx=(y*w+x)*4, sum=0, cnt=0;
+      for(var dy=-r;dy<=r;dy++) for(var dx=-r;dx<=r;dx++){
+        sum+=tmp[((y+dy)*w+(x+dx))*4+3]; cnt++;
+      }
+      d[idx+3]=Math.round(sum/cnt);
+    }
+  }
+  ctx.putImageData(id,0,0);
+}
+
+/* Smooth border: blend composite edge back with original base */
+function smoothEdgeBorder(ctx, baseCvs, lx, ly, lw, lh, W, H, feather){
+  var bw=feather*2, bh=feather*2;
+  // top edge
+  blendEdgeStrip(ctx, baseCvs, lx, ly, lw, bh, 'top', feather);
+  // bottom edge
+  blendEdgeStrip(ctx, baseCvs, lx, ly+lh-bh, lw, bh, 'bottom', feather);
+  // left edge
+  blendEdgeStrip(ctx, baseCvs, lx, ly, bw, lh, 'left', feather);
+  // right edge
+  blendEdgeStrip(ctx, baseCvs, lx+lw-bw, ly, bw, lh, 'right', feather);
+}
+
+function blendEdgeStrip(ctx, baseCvs, x, y, w, h, side, feather){
+  if(w<=0||h<=0) return;
+  x=Math.max(0,x); y=Math.max(0,y);
+  w=Math.min(baseCvs.width-x,w); h=Math.min(baseCvs.height-y,h);
+  if(w<=0||h<=0) return;
+  var comp=ctx.getImageData(x,y,w,h);
+  var base=baseCvs.getContext('2d').getImageData(x,y,w,h);
+  var cd=comp.data, bd=base.data;
+  for(var py=0;py<h;py++){
+    for(var px=0;px<w;px++){
+      var dist;
+      if(side==='top')    dist=py;
+      else if(side==='bottom') dist=h-py;
+      else if(side==='left')   dist=px;
+      else dist=w-px;
+      var t=Math.min(1,dist/feather); // 0=edge 1=inner
+      var idx=(py*w+px)*4;
+      for(var ch=0;ch<3;ch++){
+        cd[idx+ch]=Math.round(bd[idx+ch]*(1-t)+cd[idx+ch]*t);
+      }
+    }
+  }
+  ctx.putImageData(comp,x,y);
+}
+
+function initMergeCompare(W,H){
+  var box=document.getElementById('mCompareBox');
+  var overlay=document.getElementById('mCompareOverlay');
+  var divider=document.getElementById('mCompareDivider');
+  document.getElementById('mCompareWrap').style.display='block';
+  var pct=50;
+  function setPos(p){
+    pct=Math.min(98,Math.max(2,p));
+    overlay.style.width=pct+'%';
+    divider.style.left=pct+'%';
+  }
+  setPos(50);
+  function onMove(cx){ var r=box.getBoundingClientRect(); setPos((cx-r.left)/r.width*100); }
+  box.onmousedown=function(e){ e.preventDefault();
+    document.onmousemove=function(ev){onMove(ev.clientX);};
+    document.onmouseup=function(){document.onmousemove=null;};
+  };
+  box.ontouchstart=function(){
+    document.ontouchmove=function(ev){ ev.preventDefault(); onMove(ev.touches[0].clientX); };
+    document.ontouchend=function(){document.ontouchmove=null;};
+  };
+}
+
+function saveMerge(){
+  var a=document.createElement('a');
+  a.download='merged_result.png';
+  a.href=document.getElementById('mCanvas').toDataURL('image/png');
+  a.click();
+}
+// ฟังก์ชันสำหรับเลือกไฟล์ JSON จากเครื่อง
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      
+      // ตรวจสอบว่าเป็น Array หรือไม่
+      if (!Array.isArray(importedData)) {
+        alert("รูปแบบไฟล์ไม่ถูกต้อง: ข้อมูลต้องเป็นรายการ (Array)");
+        return;
+      }
+
+      let currentDB = loadDB();
+      
+      // รวมข้อมูล (ตรวจสอบเพื่อไม่ให้ ID ซ้ำกัน)
+      importedData.forEach(newItem => {
+        if (!currentDB.some(oldItem => oldItem.id === newItem.id)) {
+          currentDB.push(newItem);
+        }
+      });
+
+      saveDB(currentDB);
+      alert(`นำเข้าข้อมูลสำเร็จ! เพิ่มภาพใหม่ ${importedData.length} รายการ`);
+      
+      // Refresh การแสดงผล (ถ้าหน้าผลลัพธ์เปิดอยู่)
+      renderDBMatches(naraLevel, 'naraDBMatches');
+    } catch (err) {
+      alert("ไม่สามารถอ่านไฟล์ JSON ได้: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+</script>
+ <!-- ══ SLOT POPUP ══ -->
+<div id="slotPopupOverlay" onclick="closeSlotPopup()"></div>
+<div id="slotPopup">
+  <div style="font-size:11px;color:#6e7681;padding:4px 6px 8px;border-bottom:1px solid #21262d;margin-bottom:6px;">เลือกแหล่งภาพ</div>
+  <button class="slot-opt-btn" onclick="popupAction('device')">📱 อัปโหลดจากเครื่อง</button>
+  <button class="slot-opt-btn" onclick="popupAction('gphotos')"><span style="color:#4285F4;">🖼️</span> Google Photos</button>
+  <button class="slot-opt-btn" onclick="popupAction('gdrive')">📂 Google Drive</button>
+</div>
+
+<script>
+var _popupSlotIdx = -1;
+
+function openSlotPopup(idx, e){
+  _popupSlotIdx = idx;
+  var popup = document.getElementById('slotPopup');
+  var overlay = document.getElementById('slotPopupOverlay');
+  // Position near the tapped slot
+  var rect = document.getElementById('slot'+idx).getBoundingClientRect();
+  var pw = 218;
+  var ph = 148;
+  var left = rect.left + rect.width/2 - pw/2;
+  var top  = rect.bottom + 6;
+  // keep inside viewport
+  if(left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  if(left < 8) left = 8;
+  if(top + ph > window.innerHeight - 8) top = rect.top - ph - 6;
+  popup.style.left = left + 'px';
+  popup.style.top  = top + 'px';
+  popup.classList.add('show');
+  overlay.classList.add('show');
+}
+
+function closeSlotPopup(){
+  document.getElementById('slotPopup').classList.remove('show');
+  document.getElementById('slotPopupOverlay').classList.remove('show');
+}
+function popupAction(action){
+  var idx = _popupSlotIdx;
+  closeSlotPopup();
+
+  if(action === 'device'){
+    document.getElementById('sf' + idx).click();
+
+  } else if(action === 'gphotos'){
+    openGPhotosModal('slot', idx);
+
+  } else if(action === 'gdrive'){
+    openGDriveModal(null, idx);
+  }
+}
+
+// ฟังก์ชันสร้างป๊อปอัป Google Picker
+function openGooglePopup(type, idx) {
+    // Legacy placeholder (replaced by openGPhotosModal)
+    openGPhotosModal('slot', idx);
+}
+
+/* ══════════════════════════════════════════════
+   UNIFIED IMAGE TARGET ROUTER
+   target = number(slot idx) | 'enchant' | 'merge-base' | 'merge-layer' | 'body'
+══════════════════════════════════════════════ */
+function routeImageToTarget(target, dataUrl){
+  if(typeof target === 'number'){
+    setSlotImage(target, dataUrl);
+  } else if(target === 'enchant'){
+    enchantB64 = dataUrl.split(',')[1];
+    var p = document.getElementById('ePrev'); if(p){ p.src=dataUrl; p.style.display='block'; }
+    var prev = document.getElementById('imgPreview'); if(prev){ prev.src=dataUrl; }
+    var wrap = document.getElementById('userPreview'); if(wrap) wrap.style.display='block';
+    document.getElementById('eTxt').textContent='✅ โหลดจาก Google Photos';
+    document.getElementById('eBtn').disabled=false;
+    document.getElementById('compareWrap').style.display='none';
+  } else if(target === 'merge-base'){
+    var im=new Image(); im.onload=function(){ mBaseImg=im; mBaseB64=dataUrl.split(',')[1];
+      document.getElementById('mBasePrev').src=dataUrl; document.getElementById('mBasePrev').style.display='block';
+      document.getElementById('mBaseTxt').textContent='✅ โหลดจาก Google Photos ('+im.width+'×'+im.height+')';
+      document.getElementById('mBtn').disabled=!(mBaseImg&&mLayerImg);
+    }; im.src=dataUrl;
+  } else if(target === 'merge-layer'){
+    var im=new Image(); im.onload=function(){ mLayerImg=im; mLayerB64=dataUrl.split(',')[1];
+      document.getElementById('mLayerPrev').src=dataUrl; document.getElementById('mLayerPrev').style.display='block';
+      document.getElementById('mLayerTxt').textContent='✅ โหลดจาก Google Photos ('+im.width+'×'+im.height+')';
+      document.getElementById('mBtn').disabled=!(mBaseImg&&mLayerImg);
+    }; im.src=dataUrl;
+  } else if(target === 'body'){
+    var im=new Image(); im.onload=function(){
+      bodyB64=dataUrl.split(',')[1]; bodyImg=im;
+      document.getElementById('bodyPrev').src=dataUrl; document.getElementById('bodyPrev').style.display='block';
+      document.getElementById('bodyTxt').textContent='✅ โหลดจาก Google Photos';
+      document.getElementById('genBodyBtn').disabled=false;
+      if(naraLevel===0){ var pk=document.getElementById('bodyLevelPicker'); if(pk) pk.style.display='block'; naraLevel=3; }
+    }; im.src=dataUrl;
+  }
+}
+
+function routeImageUrlToTarget(target, imgUrl){
+  if(typeof target === 'number'){
+    slotB64[target] = 'GDRIVE_URL:'+imgUrl;
+    document.getElementById('slot'+target).classList.add('filled');
+    updateSlotStatus();
+  } else {
+    // For non-slot targets, try to load as image
+    var im=new Image(); im.crossOrigin='anonymous';
+    im.onload=function(){
+      try{
+        var c=document.createElement('canvas'); c.width=im.width; c.height=im.height;
+        c.getContext('2d').drawImage(im,0,0);
+        routeImageToTarget(target, c.toDataURL('image/jpeg',0.9));
+      }catch(e){}
+    };
+    im.src=imgUrl;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   GOOGLE PHOTOS MODAL
+══════════════════════════════════════════════ */
+var _gphotosTarget = null;
+
+function openGPhotosModal(type, slotIdx){
+  _gphotosTarget = (type === 'slot') ? slotIdx : type;
+  document.getElementById('gphotosInput').value='';
+  document.getElementById('gphotosStatus').textContent='';
+  document.getElementById('gphotosModal').classList.add('show');
+}
+function closeGPhotos(){
+  document.getElementById('gphotosModal').classList.remove('show');
+  _gphotosTarget = null;
+}
+function openGPhotosTab(){
+  window.open('https://photos.google.com','_blank','noopener');
+  document.getElementById('gphotosStatus').textContent='⏳ รอคัดลอก URL จาก Google Photos แล้วมาวางด้านล่าง...';
+}
+function loadGPhotos(){
+  var raw = document.getElementById('gphotosInput').value.trim();
+  if(!raw){ document.getElementById('gphotosStatus').textContent='⚠️ กรุณาวาง URL ก่อน'; return; }
+  document.getElementById('gphotosStatus').textContent='⏳ กำลังโหลด...';
+
+  // Try GDrive link first
+  var fileId = extractGDriveId(raw);
+  var imgUrl = fileId ? 'https://lh3.googleusercontent.com/d/'+fileId+'=s1200' : raw;
+
+  var im = new Image(); im.crossOrigin='anonymous';
+  im.onload = function(){
+    try{
+      var c=document.createElement('canvas'); c.width=im.width; c.height=im.height;
+      c.getContext('2d').drawImage(im,0,0);
+      var dataUrl=c.toDataURL('image/jpeg',0.92);
+      routeImageToTarget(_gphotosTarget, dataUrl);
+      document.getElementById('gphotosStatus').textContent='✅ โหลดสำเร็จ!';
+      setTimeout(closeGPhotos, 700);
+    }catch(e){
+      routeImageUrlToTarget(_gphotosTarget, imgUrl);
+      document.getElementById('gphotosStatus').textContent='✅ โหลดผ่าน URL แล้ว';
+      setTimeout(closeGPhotos, 700);
+    }
+  };
+  im.onerror = function(){
+    document.getElementById('gphotosStatus').textContent='❌ โหลดไม่ได้ — ลองคัดลอก URL ภาพโดยตรง (คลิกขวาที่ภาพ → Copy image address)';
+  };
+  im.src = imgUrl;
+}
+
+/* ══════════════════════════════════════════════
+   PORTRAIT COMPOSITE GENERATOR — 1440 × 3130
+   รวมภาพใบหน้า (บน) + ภาพทำนายจาก JSON (ล่าง)
+══════════════════════════════════════════════ */
+window._portraitResults = [];
+window._portraitCanvases = [];
+
+async function genPortraitComposites(){
+  var faces = slotB64.filter(function(d){ return d && !d.startsWith('GDRIVE_URL:'); });
+  if(!faces.length){ alert('กรุณาอัปโหลดภาพใบหน้าในช่องอย่างน้อย 1 ภาพก่อน'); return; }
+
+  var wrap = document.getElementById('portraitGenWrap');
+  if(wrap){ wrap.style.display = 'block'; wrap.style.opacity='1'; }
+  wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#f0a500;"><div class="spin" style="font-size:28px;display:inline-block;">🎨</div><div style="margin-top:8px;font-size:13px;">กำลังเจนภาพ 1440×3240...</div></div>';
+
+  var lv = naraLevel > 0 ? naraLevel : 3;
+  var db = loadDB();
+  var candidates = db.filter(function(it){ return it.thumb && it.thumb !== '' && it.thumb.indexOf('data:') < 0; });
+  if(!candidates.length) candidates = db;
+
+  window._portraitResults = [];
+  window._portraitCanvases = [];
+
+  for(var fi = 0; fi < faces.length; fi++){
+    var faceB64 = faces[fi];
+    var sameLv = candidates.filter(function(it){ return it.level === lv; });
+    var pool = sameLv.length ? sameLv : candidates;
+    var heeItem = pool[Math.floor(Math.random() * pool.length)];
+    try{
+      var result = await buildPortraitCanvasObj(faceB64, heeItem);
+      window._portraitResults.push({ dataUrl: result.dataUrl, idx: fi+1, heeTitle: heeItem?(heeItem.title||heeItem.desc||''):'' });
+      window._portraitCanvases.push({ cvs: result.cvs, faceB64: faceB64, heeItem: heeItem, FACE_H: result.FACE_H, HEE_Y: result.HEE_Y, HEE_H: result.HEE_H, bgImg: result.bgImg || null });
+    }catch(err){
+      console.error('Portrait gen error:', err);
+      wrap.innerHTML += '<div style="color:#f85149;font-size:12px;padding:8px;">⚠️ เจนภาพที่ '+(fi+1)+' ไม่สำเร็จ: '+err.message+'</div>';
+    }
+  }
+
+  renderPortraitResults();
+}
+
+function renderPortraitResults(){
+  var wrap = document.getElementById('portraitGenWrap');
+  var html = '<div style="font-size:13px;font-weight:bold;color:#f0a500;margin-bottom:10px;">🖼️ ภาพที่เจนได้ ('+window._portraitResults.length+' ภาพ)</div>';
+  window._portraitResults.forEach(function(r, i){
+    html += '<div style="margin-bottom:18px;background:#0d1117;border-radius:12px;overflow:hidden;border:1px solid #21262d;" id="portraitCard'+i+'">'
+      + '<img src="'+r.dataUrl+'" style="width:100%;display:block;">'
+      + '<div style="padding:10px 12px;">'
+      + '<div style="font-size:12px;color:#8b949e;margin-bottom:8px;">ภาพที่ '+r.idx+(r.heeTitle?' — '+r.heeTitle:'')+'</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+      + '<button onclick="downloadPortrait('+i+')" style="flex:1;min-width:80px;padding:8px;background:linear-gradient(135deg,#238636,#196127);color:#fff;border:none;border-radius:20px;font-size:12px;cursor:pointer;font-weight:bold;">💾 บันทึก</button>'
+      + '<button onclick="openPortraitEditor('+i+')" style="flex:1;min-width:80px;padding:8px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:20px;font-size:12px;cursor:pointer;font-weight:bold;">✂️ แก้ไขภาพ</button>'
+      + '</div>'
+      + '</div></div>';
+  });
+  wrap.innerHTML = html;
+  wrap.scrollIntoView({behavior:'smooth'});
+}
+
+function downloadPortrait(i){
+  var r = window._portraitResults[i];
+  if(!r) return;
+  var a = document.createElement('a');
+  a.download = 'gamoiy_portrait_'+(r.idx)+'.jpg';
+  a.href = r.dataUrl;
+  a.click();
+}
+
+function downloadPortraitEdited(i){
+  var pc = window._portraitCanvases[i];
+  if(!pc||!pc.cvs) return;
+  var a = document.createElement('a');
+  a.download = 'gamoiy_portrait_edited_'+(i+1)+'.jpg';
+  a.href = pc.cvs.toDataURL('image/jpeg',0.95);
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════════════
+   PORTRAIT EDITOR — Pan / Zoom / Crop ภาพทำนาย (ส่วนล่าง)
+══════════════════════════════════════════════════════════ */
+var _editIdx  = -1;
+var _editorMode = 'crop';                    // 'crop' | 'pan'
+var _editorZoom = 1.35;                      // scale เริ่มต้น 135%
+var _panOffset  = { x: 0, y: 0 };           // offset ของภาพใน Pan mode
+var _panDrag    = { active: false, lastX: 0, lastY: 0 };
+var _cropState  = { dragging:false, x:0, y:0, w:0, h:0, startX:0, startY:0 };
+
+/* ── เปลี่ยน mode ── */
+function setEditorMode(mode){
+  _editorMode = mode;
+  var btnCrop = document.getElementById('btnModeCrop');
+  var btnPan  = document.getElementById('btnModePan');
+  var cvs     = document.getElementById('editorCanvas');
+  if(mode === 'crop'){
+    if(btnCrop){ btnCrop.style.background='linear-gradient(135deg,#f0a500,#d97706)'; btnCrop.style.color='#000'; btnCrop.style.fontWeight='bold'; btnCrop.style.border='none'; }
+    if(btnPan) { btnPan.style.background='#21262d'; btnPan.style.color='#8b949e'; btnPan.style.fontWeight='normal'; btnPan.style.border='1px solid #30363d'; }
+    if(cvs) cvs.style.cursor = 'crosshair';
+    document.getElementById('editorStatus').textContent = 'โหมดครอป — ลากเพื่อเลือกพื้นที่ crop';
+  } else {
+    if(btnPan) { btnPan.style.background='linear-gradient(135deg,#1f6feb,#0d419d)'; btnPan.style.color='#fff'; btnPan.style.fontWeight='bold'; btnPan.style.border='none'; }
+    if(btnCrop){ btnCrop.style.background='#21262d'; btnCrop.style.color='#8b949e'; btnCrop.style.fontWeight='normal'; btnCrop.style.border='1px solid #30363d'; }
+    if(cvs) cvs.style.cursor = 'grab';
+    document.getElementById('editorStatus').textContent = 'โหมดเลื่อน — ลากเพื่อเลื่อนภาพ';
+  }
+}
+
+/* ── Zoom slider callback ── */
+function onEditorZoomChange(val){
+  _editorZoom = parseInt(val) / 100;
+  var label = document.getElementById('editorZoomVal');
+  if(label) label.textContent = val + '%';
+  redrawEditorCanvas();
+}
+
+/* ── วาด canvas ใน Editor (รองรับทั้ง Pan/Zoom และ Crop overlay) ── */
+function redrawEditorCanvas(){
+  var pc  = window._portraitCanvases[_editIdx];
+  if(!pc) return;
+  var cvs = document.getElementById('editorCanvas');
+  var ctx = cvs.getContext('2d');
+  var W   = cvs.width;
+  var H   = cvs.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // ถ้ามี bgImg ต้นฉบับ → ใช้วาดด้วย Pan/Zoom
+  if(pc.bgImg && (pc.bgImg.naturalWidth || pc.bgImg.width)){
+    var iw = pc.bgImg.naturalWidth || pc.bgImg.width;
+    var ih = pc.bgImg.naturalHeight || pc.bgImg.height;
+    var scale = Math.max(W/iw, H/ih) * _editorZoom;
+    var sw = iw * scale;
+    var sh = ih * scale;
+    var sx = (W - sw) / 2 + _panOffset.x;
+    var sy = (H - sh) / 2 + _panOffset.y;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+    ctx.drawImage(pc.bgImg, sx, sy, sw, sh);
+    ctx.restore();
+  } else {
+    // fallback: วาดจาก canvas เดิม (HEE zone)
+    ctx.drawImage(pc.cvs, 0, pc.HEE_Y, pc.cvs.width, pc.HEE_H, 0, 0, W, H);
+  }
+
+  // วาด crop overlay ทับเมื่ออยู่โหมด crop
+  if(_editorMode === 'crop' && (_cropState.w > 4 || _cropState.h > 4)){
+    ctx.fillStyle = 'rgba(0,0,0,0.50)';
+    ctx.fillRect(0, 0, W, H);
+    // เคลียร์ crop area แล้วแสดงภาพใต้
+    ctx.save();
+    ctx.beginPath(); ctx.rect(_cropState.x, _cropState.y, _cropState.w, _cropState.h); ctx.clip();
+    if(pc.bgImg && (pc.bgImg.naturalWidth || pc.bgImg.width)){
+      var iw2 = pc.bgImg.naturalWidth || pc.bgImg.width;
+      var ih2 = pc.bgImg.naturalHeight || pc.bgImg.height;
+      var scale2 = Math.max(W/iw2, H/ih2) * _editorZoom;
+      var sw2 = iw2*scale2, sh2 = ih2*scale2;
+      var sx2 = (W - sw2)/2 + _panOffset.x;
+      var sy2 = (H - sh2)/2 + _panOffset.y;
+      ctx.drawImage(pc.bgImg, sx2, sy2, sw2, sh2);
+    } else {
+      ctx.drawImage(pc.cvs, 0, pc.HEE_Y, pc.cvs.width, pc.HEE_H, 0, 0, W, H);
+    }
+    ctx.restore();
+    // กรอบ crop
+    ctx.strokeStyle = '#f0a500'; ctx.lineWidth = 3; ctx.setLineDash([8,4]);
+    ctx.strokeRect(_cropState.x, _cropState.y, _cropState.w, _cropState.h);
+    ctx.setLineDash([]);
+    // มุมกรอบ
+    var cs2 = _cropState;
+    [[cs2.x,cs2.y],[cs2.x+cs2.w,cs2.y],[cs2.x,cs2.y+cs2.h],[cs2.x+cs2.w,cs2.y+cs2.h]].forEach(function(pt){
+      ctx.beginPath(); ctx.arc(pt[0],pt[1],5,0,Math.PI*2); ctx.fillStyle='#f0a500'; ctx.fill();
+    });
+  }
+}
+
+function openPortraitEditor(i){
+  _editIdx    = i;
+  var pc      = window._portraitCanvases[i];
+  if(!pc) return;
+
+  // รีเซ็ต state
+  _panOffset  = { x: 0, y: 0 };
+  _editorZoom = 1.35;
+  _cropState  = { dragging:false, x:0, y:0, w:0, h:0, startX:0, startY:0 };
+  _editorMode = 'crop';
+
+  // sync slider + mode UI
+  var sl = document.getElementById('editorZoomSlider');
+  if(sl) sl.value = 135;
+  var lbl = document.getElementById('editorZoomVal');
+  if(lbl) lbl.textContent = '135%';
+
+  var modal = document.getElementById('portraitEditorModal');
+  modal.style.display = 'flex';
+
+  // ตั้งค่า canvas ขนาดเท่า HEE zone (สัดส่วน 1:1 pixel กับ bgImg)
+  var edCvs  = document.getElementById('editorCanvas');
+  var dispW  = Math.min(window.innerWidth - 48, 628); // max width ใน modal
+  var W      = pc.cvs.width;
+  var H      = pc.HEE_H;
+  edCvs.width  = W;
+  edCvs.height = H;
+
+  setEditorMode('crop');
+  redrawEditorCanvas();
+  document.getElementById('editorStatus').textContent = 'โหมดครอป — ลากเพื่อเลือกพื้นที่ crop ในภาพทำนาย';
+}
+
+function closePortraitEditor(){
+  document.getElementById('portraitEditorModal').style.display='none';
+}
+
+/* ── Legacy drawCropOverlay (ยังคงไว้สำหรับ compatibility) ── */
+function drawCropOverlay(cvs, cs){
+  redrawEditorCanvas();
+}
+
+function initEditorCrop(){
+  var cvs = document.getElementById('editorCanvas');
+
+  function getPos(e){
+    var r  = cvs.getBoundingClientRect();
+    var scX = cvs.width  / r.width;
+    var scY = cvs.height / r.height;
+    var cx  = ((e.touches ? e.touches[0].clientX : e.clientX) - r.left);
+    var cy  = ((e.touches ? e.touches[0].clientY : e.clientY) - r.top);
+    return { x: cx*scX, y: cy*scY, rawX: cx, rawY: cy };
+  }
+
+  function onStart(e){
+    e.preventDefault();
+    var p = getPos(e);
+    if(_editorMode === 'pan'){
+      _panDrag.active = true;
+      _panDrag.lastX  = p.rawX;
+      _panDrag.lastY  = p.rawY;
+      cvs.style.cursor = 'grabbing';
+    } else {
+      _cropState.dragging = true;
+      _cropState.startX = p.x; _cropState.startY = p.y;
+      _cropState.x = p.x; _cropState.y = p.y;
+      _cropState.w = 0; _cropState.h = 0;
+    }
+  }
+
+  function onMove(e){
+    e.preventDefault();
+    var p = getPos(e);
+    if(_editorMode === 'pan' && _panDrag.active){
+      var dx = (p.rawX - _panDrag.lastX) * (cvs.width / cvs.getBoundingClientRect().width);
+      var dy = (p.rawY - _panDrag.lastY) * (cvs.height / cvs.getBoundingClientRect().height);
+      _panOffset.x += dx;
+      _panOffset.y += dy;
+      _panDrag.lastX = p.rawX;
+      _panDrag.lastY = p.rawY;
+      redrawEditorCanvas();
+    } else if(_editorMode === 'crop' && _cropState.dragging){
+      _cropState.x = Math.min(p.x, _cropState.startX);
+      _cropState.y = Math.min(p.y, _cropState.startY);
+      _cropState.w = Math.abs(p.x - _cropState.startX);
+      _cropState.h = Math.abs(p.y - _cropState.startY);
+      redrawEditorCanvas();
+    }
+  }
+
+  function onEnd(e){
+    if(_editorMode === 'pan'){
+      _panDrag.active = false;
+      cvs.style.cursor = 'grab';
+    } else {
+      _cropState.dragging = false;
+      if(_cropState.w > 10 && _cropState.h > 10){
+        document.getElementById('editorStatus').textContent = 'เลือกพื้นที่แล้ว — กด "ใช้ Crop" เพื่อยืนยัน';
+      }
+    }
+  }
+
+  cvs.addEventListener('mousedown',  onStart, {passive:false});
+  cvs.addEventListener('mousemove',  onMove,  {passive:false});
+  cvs.addEventListener('mouseup',    onEnd,   {passive:false});
+  cvs.addEventListener('touchstart', onStart, {passive:false});
+  cvs.addEventListener('touchmove',  onMove,  {passive:false});
+  cvs.addEventListener('touchend',   onEnd,   {passive:false});
+}
+
+async function applyCrop(){
+  var i  = _editIdx;
+  var pc = window._portraitCanvases[i];
+  if(!pc || _cropState.w < 10 || _cropState.h < 10){
+    alert('กรุณาลากเลือกพื้นที่ crop ก่อน'); return;
+  }
+  var edCvs  = document.getElementById('editorCanvas');
+  var canvasW = edCvs.width;
+  var canvasH = edCvs.height;
+
+  // ── สร้าง offscreen canvas จากมุมมองปัจจุบัน (รวม zoom+pan) ──
+  var viewCvs = document.createElement('canvas');
+  viewCvs.width  = canvasW;
+  viewCvs.height = canvasH;
+  var vCtx = viewCvs.getContext('2d');
+  vCtx.fillStyle = '#0d1117';
+  vCtx.fillRect(0, 0, canvasW, canvasH);
+
+  if(pc.bgImg && (pc.bgImg.naturalWidth || pc.bgImg.width)){
+    var iw = pc.bgImg.naturalWidth || pc.bgImg.width;
+    var ih = pc.bgImg.naturalHeight || pc.bgImg.height;
+    var scale = Math.max(canvasW/iw, canvasH/ih) * _editorZoom;
+    var sw = iw * scale, sh = ih * scale;
+    var sx = (canvasW - sw)/2 + _panOffset.x;
+    var sy = (canvasH - sh)/2 + _panOffset.y;
+    vCtx.save();
+    vCtx.beginPath(); vCtx.rect(0,0,canvasW,canvasH); vCtx.clip();
+    vCtx.drawImage(pc.bgImg, sx, sy, sw, sh);
+    vCtx.restore();
+  } else {
+    vCtx.drawImage(pc.cvs, 0, pc.HEE_Y, pc.cvs.width, pc.HEE_H, 0, 0, canvasW, canvasH);
+  }
+
+  // ── แปลง crop coords เป็น pixel จาก viewCvs ──
+  var cx = Math.round(_cropState.x);
+  var cy = Math.round(_cropState.y);
+  var cw = Math.round(_cropState.w);
+  var ch = Math.round(_cropState.h);
+
+  // extract crop region จาก view
+  var tmpCvs = document.createElement('canvas');
+  tmpCvs.width = cw; tmpCvs.height = ch;
+  tmpCvs.getContext('2d').drawImage(viewCvs, cx, cy, cw, ch, 0, 0, cw, ch);
+
+  // วาดลง HEE zone ของ canvas หลัก (scale to fill zone)
+  var mainCtx = pc.cvs.getContext('2d');
+  mainCtx.save();
+  mainCtx.beginPath();
+  mainCtx.rect(0, pc.HEE_Y, pc.cvs.width, pc.HEE_H);
+  mainCtx.clip();
+  mainCtx.drawImage(tmpCvs, 0, 0, cw, ch, 0, pc.HEE_Y, pc.cvs.width, pc.HEE_H);
+  // sharpen หลัง crop
+  try{
+    var cropId = mainCtx.getImageData(0, pc.HEE_Y, pc.cvs.width, pc.HEE_H);
+    sharpenPass(cropId, pc.cvs.width, pc.HEE_H, 2.0);
+    colorPass(cropId, pc.cvs.width, pc.HEE_H, 1.15, 0, 1.2);
+    mainCtx.putImageData(cropId, 0, pc.HEE_Y);
+  }catch(e){}
+  mainCtx.restore();
+
+  // อัพเดต dataUrl
+  window._portraitResults[i].dataUrl = pc.cvs.toDataURL('image/jpeg', 0.95);
+  document.getElementById('editorStatus').textContent = '✅ Crop เสร็จแล้ว!';
+  setTimeout(function(){
+    closePortraitEditor();
+    renderPortraitResults();
+  }, 600);
+}
+
+function resetCropEdit(){
+  _cropState  = { dragging:false, x:0, y:0, w:0, h:0, startX:0, startY:0 };
+  _panOffset  = { x: 0, y: 0 };
+  _editorZoom = 1.35;
+  var sl = document.getElementById('editorZoomSlider');
+  if(sl) sl.value = 135;
+  var lbl = document.getElementById('editorZoomVal');
+  if(lbl) lbl.textContent = '135%';
+  redrawEditorCanvas();
+  document.getElementById('editorStatus').textContent = 'รีเซ็ตแล้ว — ลากเพื่อเลือกพื้นที่ crop ใหม่';
+}
+
+/* ══════════════════════════════════════════════════════════
+   FACE-API.JS HELPERS
+   โหลดโมเดลครั้งเดียว แล้ว detect ใบหน้าจากภาพผู้ใช้
+══════════════════════════════════════════════════════════ */
+var _faceApiReady = false;
+var _faceApiLoading = false;
+var FACE_MODEL_URI = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
+
+async function ensureFaceApiLoaded(){
+  if(_faceApiReady) return true;
+  if(_faceApiLoading) return false;
+  if(typeof faceapi === 'undefined') return false;
+  _faceApiLoading = true;
+  try{
+    await faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URI);
+    _faceApiReady = true;
+    return true;
+  }catch(e){
+    console.warn('face-api model load failed:', e);
+    return false;
+  }finally{
+    _faceApiLoading = false;
+  }
+}
+
+/* คืน {x,y,w,h} พร้อม padding หรือ null ถ้าไม่เจอหน้า */
+async function detectFaceBounds(imgEl){
+  try{
+    var loaded = await ensureFaceApiLoaded();
+    if(!loaded) return null;
+    var det = await faceapi.detectSingleFace(imgEl, new faceapi.TinyFaceDetectorOptions());
+    if(!det) return null;
+    var b = det.box;
+    var iw = imgEl.naturalWidth  || imgEl.width;
+    var ih = imgEl.naturalHeight || imgEl.height;
+    var padSide  = Math.round(Math.max(b.width, b.height) * 0.30);
+    var padTop   = Math.round(Math.max(b.width, b.height) * 0.75); // ขยายด้านบนมากขึ้นให้ได้ผม
+    var padBottom= Math.round(Math.max(b.width, b.height) * 0.25);
+    var x0 = Math.max(0, b.x - padSide);
+    var y0 = Math.max(0, b.y - padTop);
+    var x1 = Math.min(iw, b.x + b.width  + padSide);
+    var y1 = Math.min(ih, b.y + b.height + padBottom);
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }catch(e){
+    console.warn('face detect error:', e);
+    return null;
+  }
+}
+
+/* วาดใบหน้าผู้ใช้ (Layer 2) บน canvas หลัก — ไม่มีกรอบ ไม่มี fade
+   ถ้า faceBox=null → ตัดกึ่งกลางภาพ top 0%–65% */
+function drawFaceCircleLayer(ctx, faceImgEl, faceBox, W, H, destX, destY, destW, destH){
+  var srcX, srcY, srcW, srcH;
+  var iw = faceImgEl.naturalWidth  || faceImgEl.width  || destW;
+  var ih = faceImgEl.naturalHeight || faceImgEl.height || destH;
+
+  if(faceBox && faceBox.w > 10 && faceBox.h > 10){
+    srcX = faceBox.x; srcY = faceBox.y;
+    srcW = faceBox.w; srcH = faceBox.h;
+  } else {
+    // fallback: ตัดกึ่งกลาง สูงจาก top 0%–65% เพื่อให้ได้ผมด้านบน
+    var side = Math.min(iw, Math.round(ih * 0.65));
+    srcX = Math.round((iw - side) / 2);
+    srcY = 0;
+    srcW = side; srcH = side;
+  }
+
+  // วาดเต็มพื้นที่ zone ใบหน้า (ไม่ crop เป็นวงกลม ไม่มีกรอบ)
+  ctx.save();
+  ctx.drawImage(faceImgEl, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+  ctx.restore();
+}
+
+/* สร้าง canvas 1440×3240 พร้อม Layer 1 (hee) + Layer 2 (face circle via FaceAPI) */
+async function buildPortraitCanvasObj(faceB64, heeItem){
+  var lv = naraLevel > 0 ? naraLevel : 3;
+  var W = 1440, H = 3240;
+  var cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  var ctx = cvs.getContext('2d');
+  var FACE_H = Math.round(H * 0.58);   // ~1879px — zone ใบหน้า
+  var HEE_Y  = FACE_H;
+  var HEE_H  = H - HEE_Y;             // ~1361px — zone hee
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // ════ LAYER 1: ภาพ hee จากคลังข้อมูล (Cover Fit ทั้ง canvas) ════
+  // ดึงภาพจากลอจิกเดิมผ่าน pickBestSingleImage ก่อน แล้วใช้ heeItem ที่ส่งมา
+  var bgSrc = (heeItem && (heeItem.thumb || heeItem.file)) ? (heeItem.thumb || heeItem.file) : null;
+  var bgImg = null;
+  if(bgSrc){
+    bgImg = await loadImgP(bgSrc, lv, heeItem.title||'');
+    if(bgImg && (bgImg.naturalWidth || bgImg.width)){
+      // วาด cover-fit เต็ม canvas ทั้งหมดเป็น Layer 1 — Auto-Zoom 1.35x
+      drawCoverFit(ctx, bgImg, 0, 0, W, H, 1.35);
+      // เพิ่มความชัดภาพพื้นหลัง
+      try{
+        var bgId = ctx.getImageData(0, HEE_Y, W, HEE_H);
+        sharpenPass(bgId, W, HEE_H, 1.8);
+        sharpenPass(bgId, W, HEE_H, 1.2);
+        colorPass(bgId, W, HEE_H, 1.12, 0, 1.15);
+        ctx.putImageData(bgId, 0, HEE_Y);
+      }catch(e){}
+    }
+  }
+
+  // Dim overlay บน zone ใบหน้า เพื่อให้วงกลมใบหน้าเด่น
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, W, FACE_H);
+
+  // ════ LAYER 2: ใบหน้าผู้ใช้ — FaceAPI วงกลมขอบเนียน ════
+  var faceImgEl = await loadImgP('data:image/jpeg;base64,'+faceB64, lv, 'ใบหน้า');
+  if(faceImgEl){
+    // ลอง detect ใบหน้าด้วย face-api ก่อน
+    var faceBox = await detectFaceBounds(faceImgEl);
+    // วาดวงกลมใบหน้า (faceBox = null จะ fallback เป็น center crop อัตโนมัติ)
+    drawFaceCircleLayer(ctx, faceImgEl, faceBox, W, H, 0, 0, W, FACE_H);
+    // เพิ่มความชัดบน zone ใบหน้า
+    try{
+      var fid = ctx.getImageData(0, 0, W, FACE_H);
+      sharpenPass(fid, W, FACE_H, 1.2);
+      colorPass(fid, W, FACE_H, 1.08, 4, 1.06);
+      ctx.putImageData(fid, 0, 0);
+    }catch(e){}
+  }
+
+  // เส้นคั่นบางๆ
+  ctx.fillStyle = 'rgba(240,165,0,0.6)';
+  ctx.fillRect(0, FACE_H-2, W, 2);
+
+  return { cvs:cvs, dataUrl:cvs.toDataURL('image/jpeg',0.95), FACE_H:FACE_H, HEE_Y:HEE_Y, HEE_H:HEE_H, bgImg:bgImg };
+}
+
+function buildPortraitCanvas(faceB64, heeItem){
+  return new Promise(async function(resolve){
+    var lv = naraLevel > 0 ? naraLevel : 3;
+    var W = 1440, H = 3240;
+    var cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    var ctx = cvs.getContext('2d');
+
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0,0,W,H);
+
+    var FACE_H = Math.round(H * 0.58);
+    var HEE_Y  = FACE_H;
+    var HEE_H  = H - HEE_Y;
+
+    // Layer 1 — hee image cover full canvas
+    var bgSrc = (heeItem && (heeItem.thumb || heeItem.file)) ? (heeItem.thumb || heeItem.file) : null;
+    if(bgSrc){
+      var bgImg = await loadImgP(bgSrc, lv, heeItem.title||'');
+      if(bgImg && (bgImg.naturalWidth || bgImg.width)){
+        drawCoverFit(ctx, bgImg, 0, 0, W, H, 1.35);
+        try{
+          var hid = ctx.getImageData(0, HEE_Y, W, HEE_H);
+          sharpenPass(hid, W, HEE_H, 1.8);
+          sharpenPass(hid, W, HEE_H, 1.2);
+          colorPass(hid, W, HEE_H, 1.12, 0, 1.15);
+          ctx.putImageData(hid, 0, HEE_Y);
+        }catch(e){}
+      }
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillRect(0, 0, W, FACE_H);
+
+    // Layer 2 — face circle
+    var faceImgEl = await loadImgP('data:image/jpeg;base64,'+faceB64, lv, 'ใบหน้า');
+    if(faceImgEl){
+      var faceBox = await detectFaceBounds(faceImgEl);
+      drawFaceCircleLayer(ctx, faceImgEl, faceBox, W, H, 0, 0, W, FACE_H);
+      try{
+        var fid2 = ctx.getImageData(0, 0, W, FACE_H);
+        sharpenPass(fid2, W, FACE_H, 1.2);
+        colorPass(fid2, W, FACE_H, 1.08, 4, 1.06);
+        ctx.putImageData(fid2, 0, 0);
+      }catch(e){}
+    }
+
+    ctx.fillStyle = 'rgba(240,165,0,0.6)';
+    ctx.fillRect(0, FACE_H-2, W, 2);
+
+    resolve(cvs.toDataURL('image/jpeg', 0.95));
+  });
+}
+
+function loadImgP(src, level, title){
+  return new Promise(function(resolve){
+    if(!src){ resolve(makePlaceholderImg(level||3,title||'')); return; }
+    var im = new Image(); im.crossOrigin='anonymous';
+    im.onload = function(){ resolve(im); };
+    im.onerror = function(){
+      var im2 = new Image();
+      im2.onload = function(){ resolve(im2); };
+      im2.onerror = function(){ resolve(makePlaceholderImg(level||3,title||'')); };
+      im2.src = src;
+    };
+    im.src = src;
+  });
+}
+
+/* วาดภาพแบบ cover-fit (เต็มพื้นที่ ไม่บิดเบี้ยว ตัดส่วนเกิน)
+   zoom: optional scale multiplier (default 1.0); ใช้ 1.35 เพื่อ Auto-Zoom */
+function drawCoverFit(ctx, img, x, y, w, h, zoom){
+  zoom = zoom || 1.0;
+  var iw = img.naturalWidth || img.width;
+  var ih = img.naturalHeight || img.height;
+  if(!iw || !ih) return;
+  var scale = Math.max(w/iw, h/ih) * zoom;
+  var sw = iw*scale, sh = ih*scale;
+  var sx = x + (w-sw)/2, sy = y + (h-sh)/2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.drawImage(img, sx, sy, sw, sh);
+  ctx.restore();
+}
+
+</script>
+
+<!-- ══ PORTRAIT EDITOR MODAL ══ -->
+<div id="portraitEditorModal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:12px;">
+  <div style="width:100%;max-width:660px;background:#161b22;border-radius:14px;padding:16px;border:1px solid #30363d;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:15px;font-weight:bold;color:#f0a500;">✂️ แก้ไขภาพทำนาย — Crop / Pan / Zoom</div>
+      <button onclick="closePortraitEditor()" style="background:#21262d;border:none;color:#e6edf3;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;">✕ ปิด</button>
+    </div>
+
+    <!-- ── Mode Toggle ── -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button id="btnModeCrop" onclick="setEditorMode('crop')"
+        style="flex:1;padding:9px;background:linear-gradient(135deg,#f0a500,#d97706);color:#000;border:none;border-radius:20px;font-size:12px;font-weight:bold;cursor:pointer;">
+        ✂️ โหมดครอป (Crop)
+      </button>
+      <button id="btnModePan" onclick="setEditorMode('pan')"
+        style="flex:1;padding:9px;background:#21262d;color:#8b949e;border:1px solid #30363d;border-radius:20px;font-size:12px;cursor:pointer;">
+        🖐 โหมดเลื่อน (Pan)
+      </button>
+    </div>
+
+    <!-- ── Zoom Slider ── -->
+    <div class="slider-row" style="margin-bottom:10px;background:#0d1117;border-radius:8px;padding:8px 12px;">
+      <span style="font-size:12px;white-space:nowrap;">🔍 ซูมภาพ</span>
+      <input type="range" id="editorZoomSlider" min="100" max="300" value="135"
+        oninput="onEditorZoomChange(this.value)" style="flex:1;accent-color:#f0a500;">
+      <span id="editorZoomVal" style="min-width:42px;text-align:right;font-size:12px;color:#f0a500;">135%</span>
+    </div>
+
+    <div id="editorStatus" style="font-size:12px;color:#8b949e;margin-bottom:8px;text-align:center;">ลากเพื่อเลือกพื้นที่ crop ในภาพทำนาย</div>
+
+    <!-- Editor canvas — แสดง hee zone -->
+    <div style="position:relative;border-radius:10px;overflow:hidden;border:2px solid #30363d;touch-action:none;" id="editorCanvasWrap">
+      <canvas id="editorCanvas" style="display:block;width:100%;touch-action:none;cursor:crosshair;"></canvas>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button onclick="applyCrop()" style="flex:2;padding:11px;background:linear-gradient(135deg,#f0a500,#d97706);color:#000;border:none;border-radius:20px;font-size:13px;font-weight:bold;cursor:pointer;">✅ ใช้ Crop</button>
+      <button onclick="resetCropEdit()" style="flex:1;padding:11px;background:#21262d;color:#e6edf3;border:none;border-radius:20px;font-size:13px;cursor:pointer;">🔄 รีเซ็ต</button>
+      <button onclick="closePortraitEditor()" style="flex:1;padding:11px;background:#da3633;color:#fff;border:none;border-radius:20px;font-size:13px;cursor:pointer;">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// เริ่ม crop interaction หลัง DOM โหลด
+window.addEventListener('load', function(){ initEditorCrop(); });
+</script>
+<!-- ป้องกัน Redeclaration ของ NORALAK_DB — ใช้ window object แทน const -->
+<script>
+window.NORALAK_DB = window.NORALAK_DB || {};
+</script>
+<script src="script.js"></script>
+</body>
+</html>
